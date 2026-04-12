@@ -29,7 +29,7 @@ export async function getFreepikPage(): Promise<Page> {
   const b = await connectBrowser();
   const pages = await b.pages();
 
-  const freepikPage = pages.find(p => p.url().includes("freepik.com"));
+  const freepikPage = pages.find(p => p.url().includes("freepik.com/pikaso"));
   if (freepikPage) {
     log("info", "기존 Freepik 탭 재사용");
     return freepikPage;
