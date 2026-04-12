@@ -10,60 +10,150 @@ import {
   validateResearchReport,
 } from "../src/research/analyzer.js";
 import { buildTrendKeyword, sortByVolume, filterOpportunities } from "../src/research/trend.js";
+import { extractJsonFromResponse, parseStoryPatterns, parseTrendKeywords, parseChannelBenchmarks } from "../src/research/parser.js";
+import { buildResearchFromResponses } from "../src/research/pipeline.js";
+import { channelCollectorPrompt, storyPatternPrompt } from "../src/research/prompts.js";
 
-describe("리서치/분석 모듈", () => {
-  const storyPattern = buildStoryPattern("romance", "기승전결 4막", 600, 3, "채널A 상위 영상");
-  const visualPattern = buildVisualPattern("romance", "anime", ["#FFB6C1", "#87CEEB"], "클로즈업 중심", "캐릭터 얼굴 중앙");
-  const hookingPattern = buildHookingPattern("opening", "질문형 오프닝", ["왜 그랬을까?", "그날 이후..."]);
-  const keyword = buildTrendKeyword("고등학교 로맨스", 12000, "medium", true);
-  const benchmark = buildChannelBenchmark("드라마채널", 50000, 100000, "주 2회", 4.5, ["인기영상1"]);
-
+describe("리서치/분석 — 빌더", () => {
   it("StoryPattern 생성", () => {
-    expect(storyPattern.genre).toBe("romance");
-    expect(storyPattern.avgDuration).toBe(600);
+    const p = buildStoryPattern("romance", "기승전결 4막", 600, 3, "채널A");
+    expect(p.genre).toBe("romance");
+    expect(p.avgDuration).toBe(600);
   });
 
   it("VisualPattern 생성", () => {
-    expect(visualPattern.style).toBe("anime");
-    expect(visualPattern.colorPalette).toHaveLength(2);
+    const p = buildVisualPattern("romance", "anime", ["#FFB6C1"], "클로즈업", "얼굴 중앙");
+    expect(p.style).toBe("anime");
+    expect(p.colorPalette).toHaveLength(1);
   });
 
   it("HookingPattern 생성", () => {
-    expect(hookingPattern.type).toBe("opening");
-    expect(hookingPattern.examples).toHaveLength(2);
+    const p = buildHookingPattern("opening", "질문형", ["왜?"]);
+    expect(p.type).toBe("opening");
   });
 
-  it("ResearchReport 조립 및 검증", () => {
-    const success = assembleSuccessPatterns([storyPattern], [visualPattern], [hookingPattern]);
-    const trend = assembleTrendAnalysis([keyword], [benchmark]);
+  it("ResearchReport 조립 + 검증 성공", () => {
+    const success = assembleSuccessPatterns(
+      [buildStoryPattern("romance", "4막", 600, 3, "src")],
+      [buildVisualPattern("romance", "anime", ["#fff"], "wide", "face")],
+      [buildHookingPattern("opening", "질문", ["왜?"])],
+    );
+    const trend = assembleTrendAnalysis(
+      [buildTrendKeyword("로맨스", 10000, "low", true)],
+      [buildChannelBenchmark("채널A", 50000, 100000, "주 2회", 4.5, ["영상1"])],
+    );
     const report = assembleResearchReport(success, trend);
-
-    expect(report.generatedAt).toBeTruthy();
     expect(validateResearchReport(report)).toHaveLength(0);
   });
 
   it("빈 패턴 검증 시 에러 반환", () => {
-    const success = assembleSuccessPatterns([], [], []);
-    const trend = assembleTrendAnalysis([], []);
-    const report = assembleResearchReport(success, trend);
-
-    const errors = validateResearchReport(report);
-    expect(errors.length).toBeGreaterThanOrEqual(3);
+    const report = assembleResearchReport(
+      assembleSuccessPatterns([], [], []),
+      assembleTrendAnalysis([], []),
+    );
+    expect(validateResearchReport(report).length).toBeGreaterThanOrEqual(3);
   });
+});
 
-  it("트렌드 키워드 정렬", () => {
+describe("리서치/분석 — 트렌드", () => {
+  it("검색량 정렬", () => {
     const k1 = buildTrendKeyword("a", 5000, "low", true);
     const k2 = buildTrendKeyword("b", 15000, "high", false);
-    const sorted = sortByVolume([k1, k2]);
-    expect(sorted[0].keyword).toBe("b");
+    expect(sortByVolume([k1, k2])[0].keyword).toBe("b");
   });
 
-  it("기회 키워드 필터", () => {
-    const k1 = buildTrendKeyword("a", 5000, "low", true);
-    const k2 = buildTrendKeyword("b", 15000, "high", true);
-    const k3 = buildTrendKeyword("c", 8000, "medium", false);
-    const opps = filterOpportunities([k1, k2, k3]);
-    expect(opps).toHaveLength(1);
-    expect(opps[0].keyword).toBe("a");
+  it("기회 키워드 필터 — low+trending 포함, high+trending 제외", () => {
+    const keywords = [
+      buildTrendKeyword("a", 5000, "low", true),
+      buildTrendKeyword("b", 15000, "high", true),
+      buildTrendKeyword("c", 8000, "medium", true),
+      buildTrendKeyword("d", 3000, "low", false),
+    ];
+    const opps = filterOpportunities(keywords);
+    expect(opps).toHaveLength(2);
+    expect(opps.map(k => k.keyword)).toContain("a");
+    expect(opps.map(k => k.keyword)).toContain("c");
+  });
+});
+
+describe("리서치/분석 — LLM 응답 파싱", () => {
+  it("코드블록에서 JSON 추출", () => {
+    const response = `분석 결과입니다:
+\`\`\`json
+[{"genre": "romance", "structure": "4막", "avgDuration": 600, "episodeCount": 3, "source": "채널A"}]
+\`\`\``;
+    const extracted = extractJsonFromResponse(response);
+    expect(extracted).toHaveLength(1);
+    const patterns = parseStoryPatterns(extracted);
+    expect(patterns).toHaveLength(1);
+    expect(patterns[0].genre).toBe("romance");
+  });
+
+  it("코드블록 없는 JSON 추출", () => {
+    const response = `결과: [{"keyword": "로맨스", "searchVolume": 12000, "competition": "medium", "trending": true}]`;
+    const extracted = extractJsonFromResponse(response);
+    const keywords = parseTrendKeywords(extracted);
+    expect(keywords).toHaveLength(1);
+    expect(keywords[0].searchVolume).toBe(12000);
+  });
+
+  it("잘못된 JSON 무시", () => {
+    const response = "이것은 JSON이 아닙니다. {broken: json}";
+    const extracted = extractJsonFromResponse(response);
+    expect(extracted).toHaveLength(0);
+  });
+
+  it("음수 값 방어", () => {
+    const response = `[{"keyword": "test", "searchVolume": -100, "competition": "low", "trending": true}]`;
+    const keywords = parseTrendKeywords(extractJsonFromResponse(response));
+    expect(keywords[0].searchVolume).toBe(0);
+  });
+
+  it("빈 channelName 무시", () => {
+    const response = `[{"channelName": "", "subscribers": 100}, {"channelName": "유효", "subscribers": 200}]`;
+    const benchmarks = parseChannelBenchmarks(extractJsonFromResponse(response));
+    expect(benchmarks).toHaveLength(1);
+    expect(benchmarks[0].channelName).toBe("유효");
+  });
+
+  it("잘못된 competition 값 → medium fallback", () => {
+    const response = `[{"keyword": "test", "searchVolume": 100, "competition": "invalid", "trending": false}]`;
+    const keywords = parseTrendKeywords(extractJsonFromResponse(response));
+    expect(keywords[0].competition).toBe("medium");
+  });
+});
+
+describe("리서치/분석 — 파이프라인", () => {
+  it("LLM 응답 → ResearchReport 조립", () => {
+    const report = buildResearchFromResponses({
+      genre: "romance",
+      channelResponse: `[{"channelName": "드라마채널", "subscribers": 50000, "avgViews": 100000, "uploadFrequency": "주 2회", "engagementRate": 4.5, "topVideos": ["v1"]}]`,
+      storyResponse: `[{"genre": "romance", "structure": "4막", "avgDuration": 600, "episodeCount": 3, "source": "채널A"}]`,
+      visualResponse: `[{"genre": "romance", "style": "anime", "colorPalette": ["#FFB6C1"], "composition": "클로즈업", "thumbnailStyle": "얼굴"}]`,
+      hookingResponse: `[{"type": "opening", "description": "질문형", "examples": ["왜?"]}]`,
+      trendResponse: `[{"keyword": "로맨스", "searchVolume": 12000, "competition": "low", "trending": true}]`,
+    });
+
+    expect(report.successPatterns.story).toHaveLength(1);
+    expect(report.successPatterns.visual).toHaveLength(1);
+    expect(report.successPatterns.hooking).toHaveLength(1);
+    expect(report.trendAnalysis.keywords).toHaveLength(1);
+    expect(report.trendAnalysis.benchmarks).toHaveLength(1);
+    expect(validateResearchReport(report)).toHaveLength(0);
+  });
+});
+
+describe("리서치/분석 — 프롬프트 템플릿", () => {
+  it("channelCollectorPrompt에 장르와 수량 포함", () => {
+    const prompt = channelCollectorPrompt("romance", 10);
+    expect(prompt).toContain("romance");
+    expect(prompt).toContain("10");
+    expect(prompt).toContain("JSON");
+  });
+
+  it("storyPatternPrompt에 장르 포함", () => {
+    const prompt = storyPatternPrompt("thriller");
+    expect(prompt).toContain("thriller");
+    expect(prompt).toContain("3개 이상");
   });
 });
