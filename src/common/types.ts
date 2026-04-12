@@ -127,7 +127,7 @@ export interface EvalReport {
   sprintContract: string;
   scores: EvalScores;
   weightedTotal: number;
-  verdict: "PASS" | "REWORK" | "REGENERATE";
+  verdict: "PASS" | "REWORK" | "REGENERATE" | "ESCALATE";
   antiPatterns: string[];
   issues: string[];
   recommendation: string;

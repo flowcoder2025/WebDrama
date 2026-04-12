@@ -95,13 +95,38 @@ describe("EvalReport 생성", () => {
     expect(report.issues).toContain("이미지 누락");
   });
 
-  it("ESCALATE → REWORK + 메시지", () => {
+  it("ESCALATE verdict + 메시지", () => {
     const report = buildEvalReport(
       "WI-010", "sprint-010.md", makeScores(8, 7, 9, 6),
       [], [], "수정 필요", 10,
     );
-    expect(report.verdict).toBe("REWORK");
+    expect(report.verdict).toBe("ESCALATE");
     expect(report.recommendation).toContain("사용자 판단 필요");
+  });
+
+  it("REGENERATE 리포트", () => {
+    const report = buildEvalReport(
+      "WI-010", "sprint-010.md", makeScores(3, 2, 4, 3),
+      ["stub 코드"], ["전면 재생성 필요"], "처음부터 다시", 1,
+    );
+    expect(report.verdict).toBe("REGENERATE");
+    expect(report.weightedTotal).toBeLessThan(5);
+  });
+});
+
+describe("점수 범위 검증", () => {
+  it("10 초과 점수 → 10으로 클램핑", () => {
+    const scores = makeScores(15, 10, 10, 10);
+    const total = calculateWeightedTotal(scores);
+    expect(total).toBeLessThanOrEqual(10);
+  });
+
+  it("음수 점수 → 0으로 클램핑", () => {
+    const scores = makeScores(-5, 10, 10, 10);
+    const total = calculateWeightedTotal(scores);
+    expect(total).toBeGreaterThanOrEqual(0);
+    // -5 → 0, 나머지 10: 0*0.3 + 10*0.25 + 10*0.2 + 10*0.25 = 7.0
+    expect(total).toBe(7);
   });
 });
 

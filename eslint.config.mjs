@@ -5,7 +5,7 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["dist/", "node_modules/", "projects/", "src/editor/compositions/"],
+    ignores: ["dist/", "node_modules/", "projects/"],
   },
   {
     rules: {
