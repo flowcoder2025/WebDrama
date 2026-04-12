@@ -41,13 +41,22 @@ fi
 # null byte, newline, 제어문자 제거 (context poisoning 방어)
 file_path=$(printf '%s' "$file_path" | tr -d '\0\n\r' | tr -d '[:cntrl:]')
 
+# Windows 경로 정규화 (cwd 제거보다 먼저 수행)
+file_path=$(printf '%s' "$file_path" | tr '\' '/')
+
 # 상대 경로로 정규화
 cwd=$(echo "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
+cwd=$(printf '%s' "$cwd" | tr '\' '/')
 if [[ -n "$cwd" && "$file_path" == "$cwd/"* ]]; then
   file_path="${file_path#$cwd/}"
 fi
-# Windows 경로 정규화
-file_path=$(echo "$file_path" | sed 's|\\|/|g')
+# 드라이브 레터로 남은 절대경로 처리
+if [[ "$file_path" == [A-Z]:/* ]]; then
+  local_cwd=$(pwd | tr '\' '/')
+  if [[ "$file_path" == "$local_cwd/"* ]]; then
+    file_path="${file_path#$local_cwd/}"
+  fi
+fi
 
 # ownership.json 읽기
 OWNERSHIP_FILE=".flowset/ownership.json"

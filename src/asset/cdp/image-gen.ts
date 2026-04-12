@@ -34,6 +34,8 @@ async function inputPrompt(page: Page, prompt: string): Promise<void> {
   await page.keyboard.down("Control");
   await page.keyboard.press("a");
   await page.keyboard.up("Control");
+  await page.keyboard.press("Backspace");
+  await new Promise(r => setTimeout(r, 300));
   await page.keyboard.type(prompt, { delay: 10 });
   log("info", `프롬프트 입력 완료 (${prompt.length}자)`);
 }

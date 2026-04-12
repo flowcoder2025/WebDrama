@@ -1,7 +1,7 @@
 {
   "teams": {
-    "creative": ["src/research/**", "src/story/**", "templates/**"],
-    "execution": ["src/asset/**", "src/editor/**", "projects/**/assets/**", "projects/**/output/**"],
+    "creative": ["src/research/**", "src/story/**", "templates/**", "projects/**/research-report.json", "projects/**/production-spec.json"],
+    "execution": ["src/asset/**", "src/editor/**", "projects/**/assets/**", "projects/**/output/**", "projects/**/character-seeds.json"],
     "qa": ["tests/**"],
     "devops": [".github/**", ".claude/**", ".flowset/**"],
     "planning": ["docs/**"]
