@@ -44,16 +44,16 @@ PRD에서 생성된 WI 체크리스트입니다.
 - [x] WI-029-feat BGM 후처리기 | L1:음성 > L2:BGM > L3:볼륨/페이드
 
 ### Batch 6: 편집/합성 — Remotion (순차)
-- [ ] WI-030-feat Remotion 프로젝트 초기화 | L1:편집 > L2:Remotion > L3:타임라인
-- [ ] WI-031-feat Scene 컴포넌트 | L1:편집 > L2:Remotion > L3:타임라인
-- [ ] WI-032-feat Drama 컴포넌트 (루트) | L1:편집 > L2:Remotion > L3:타임라인
-- [ ] WI-033-feat Subtitle 컴포넌트 | L1:편집 > L2:Remotion > L3:자막
-- [ ] WI-034-feat Transition 컴포넌트 | L1:편집 > L2:Remotion > L3:전환 효과
-- [ ] WI-035-feat Shorts 렌더러 | L1:편집 > L2:출력 > L3:Shorts
-- [ ] WI-036-feat 롱폼 렌더러 | L1:편집 > L2:출력 > L3:롱폼
+- [x] WI-030-feat Remotion 프로젝트 초기화 | L1:편집 > L2:Remotion > L3:타임라인
+- [x] WI-031-feat Scene 컴포넌트 | L1:편집 > L2:Remotion > L3:타임라인
+- [x] WI-032-feat Drama 컴포넌트 (루트) | L1:편집 > L2:Remotion > L3:타임라인
+- [x] WI-033-feat Subtitle 컴포넌트 | L1:편집 > L2:Remotion > L3:자막
+- [x] WI-034-feat Transition 컴포넌트 | L1:편집 > L2:Remotion > L3:전환 효과
+- [x] WI-035-feat Shorts 렌더러 | L1:편집 > L2:출력 > L3:Shorts
+- [x] WI-036-feat 롱폼 렌더러 | L1:편집 > L2:출력 > L3:롱폼
 
 ### Batch 7: 검수 + 통합 (순차)
-- [ ] WI-037-feat Evaluator 채점 기준 설정 | L1:검수 > L2:Evaluator > L3:채점 기준
-- [ ] WI-038-feat 재작업 흐름 검증 | L1:검수 > L2:Evaluator > L3:판정
-- [ ] WI-039-feat 리뷰 프레젠터 | L1:검수 > L2:사용자 리뷰 > L3:최종 확인
-- [ ] WI-040-feat 피드백 반영기 | L1:검수 > L2:사용자 리뷰 > L3:수정 반영
+- [x] WI-037-feat Evaluator 채점 기준 설정 | L1:검수 > L2:Evaluator > L3:채점 기준
+- [x] WI-038-feat 재작업 흐름 검증 | L1:검수 > L2:Evaluator > L3:판정
+- [x] WI-039-feat 리뷰 프레젠터 | L1:검수 > L2:사용자 리뷰 > L3:최종 확인
+- [x] WI-040-feat 피드백 반영기 | L1:검수 > L2:사용자 리뷰 > L3:수정 반영
