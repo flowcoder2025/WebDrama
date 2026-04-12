@@ -54,12 +54,13 @@ FlowSet의 기존 팀 시스템을 사용합니다:
 | 5점 미만 | 전면 재생성 (처음부터 다시) |
 | 10회 초과 | 현재 최고 점수 버전 + 피드백을 사용자에게 제시 → 직접 판단 |
 
-### 에이전트 간 통신 계약
+### 에이전트 간 통신
 
-- 에이전트 간 통신은 **JSON 파일로만** — 직접 호출 금지
-- 각 에이전트는 자기 출력 파일만 쓰기 가능
-- production-spec.json은 창작 에이전트만 수정 가능
-- 실행 에이전트가 명세서에 없는 판단을 하면 Evaluator가 감점
+- **통신**: FlowSet Agent Teams의 SendMessage 사용
+- **데이터 경계**: production-spec.json, eval-report.json 등 JSON 파일이 팀 간 데이터 인터페이스
+- 각 팀은 자기 소유 디렉토리 파일만 수정 가능 (ownership.json + PreToolUse hook 강제)
+- production-spec.json은 creative 팀만 수정 가능
+- execution 팀이 명세서에 없는 창작 판단을 하면 Evaluator가 감점
 
 ### production-spec.json 스키마
 

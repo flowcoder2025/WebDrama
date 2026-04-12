@@ -48,7 +48,8 @@
 - 전체: `.flowset/guardrails.md` (공유 제약)
 
 ## 에이전트 간 통신 규칙
-- 에이전트 간 통신은 **JSON 파일로만** — 직접 호출 금지
+- **통신**: FlowSet Agent Teams의 SendMessage 사용
+- **데이터 경계**: production-spec.json, eval-report.json이 팀 간 인터페이스
 - production-spec.json은 creative만 수정 가능
 - execution은 assets/, output/만 쓰기 가능
 - evaluator는 eval-report.json만 쓰기 가능
