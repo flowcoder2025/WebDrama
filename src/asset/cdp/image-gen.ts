@@ -11,6 +11,7 @@ import { log } from "../../common/logger.js";
 export async function generateImage(page: Page, prompt: string): Promise<Buffer> {
   const config = loadFreepikConfig();
 
+  await ensureResolution(page, config.image.resolution);
   await inputPrompt(page, prompt);
   await clickGenerate(page, config.image.generateSelector);
   await waitForResult(page, config.image.resultSelector, config.image.timeout);
@@ -24,6 +25,43 @@ export async function saveImage(buffer: Buffer, outputPath: string): Promise<str
   writeFileSync(fullPath, buffer);
   log("info", `이미지 저장: ${fullPath} (${(buffer.length / 1024 / 1024).toFixed(1)}MB)`);
   return fullPath;
+}
+
+async function ensureResolution(page: Page, target: string): Promise<void> {
+  const current = await page.evaluate(() => {
+    const btns = document.querySelectorAll("button");
+    for (const btn of btns) {
+      const text = btn.innerText?.trim();
+      if ((text === "1K" || text === "2K" || text === "4K") &&
+          btn.className.includes("active")) {
+        return text;
+      }
+    }
+    return null;
+  });
+
+  if (current === target) {
+    log("info", `해상도 이미 ${target} 설정됨`);
+    return;
+  }
+
+  const clicked = await page.evaluate((t: string) => {
+    const btns = document.querySelectorAll("button");
+    for (const btn of btns) {
+      if (btn.innerText?.trim() === t) {
+        (btn as HTMLElement).click();
+        return true;
+      }
+    }
+    return false;
+  }, target);
+
+  if (clicked) {
+    await new Promise(r => setTimeout(r, 500));
+    log("info", `해상도 ${target}로 변경`);
+  } else {
+    log("warn", `해상도 ${target} 버튼을 찾을 수 없음 — 현재 설정 유지`);
+  }
 }
 
 async function inputPrompt(page: Page, prompt: string): Promise<void> {
@@ -91,7 +129,11 @@ async function extractLargestImage(page: Page): Promise<string> {
   });
 
   if (!url) throw new Error("생성된 이미지를 찾을 수 없음");
-  return url;
+
+  // &preview=1 제거 → 원본 해상도 URL
+  const fullUrl = url.replace(/&preview=1/, "");
+  log("info", `원본 이미지 URL 추출 (preview 파라미터 제거)`);
+  return fullUrl;
 }
 
 /**

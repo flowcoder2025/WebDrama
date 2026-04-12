@@ -11,7 +11,8 @@ import { log } from "../../common/logger.js";
 export async function generateVideo(page: Page, imagePath: string, prompt: string): Promise<Buffer> {
   const config = loadFreepikConfig();
 
-  await uploadImage(page, imagePath, config.video.uploadSelector);
+  await navigateToImageToVideo(page);
+  await uploadImage(page, imagePath);
   await inputVideoPrompt(page, prompt);
   await clickGenerate(page);
   await waitForVideoResult(page, config.video.timeout);
@@ -27,8 +28,20 @@ export async function saveVideo(buffer: Buffer, outputPath: string): Promise<str
   return fullPath;
 }
 
-async function uploadImage(page: Page, imagePath: string, selector: string): Promise<void> {
-  const input = await page.waitForSelector(selector, { timeout: 10000 });
+async function navigateToImageToVideo(page: Page): Promise<void> {
+  // Image to Video 모드 확인 — 이미 영상 탭이면 업로드 영역 존재
+  const hasFileInput = await page.$("input[type=file]");
+  if (hasFileInput) {
+    log("info", "Image to Video 모드 확인됨");
+    return;
+  }
+  log("warn", "file input 없음 — 페이지 새로고침 시도");
+  await page.reload({ waitUntil: "networkidle2" });
+  await page.waitForSelector("input[type=file]", { timeout: 15000 });
+}
+
+async function uploadImage(page: Page, imagePath: string): Promise<void> {
+  const input = await page.waitForSelector("input[type=file]", { timeout: 10000 });
   if (!input) throw new Error("파일 업로드 입력을 찾을 수 없음");
   await (input as unknown as { uploadFile: (path: string) => Promise<void> }).uploadFile(resolve(imagePath));
   log("info", `이미지 업로드: ${imagePath}`);

@@ -17,7 +17,7 @@ disallowedTools: Agent
 - **팀 등록 (hook 연동 필수)**:
   ```bash
   mkdir -p .flowset/teams
-  echo "{TEAM_NAME}" > .flowset/teams/$(cat /proc/self/sessionid 2>/dev/null || echo $$).team
+  echo "{TEAM_NAME}" > .flowset/teams/{TEAM_NAME}.team
   ```
   이 파일이 있어야 PreToolUse hook(소유권/팀간 리뷰)이 팀을 식별합니다.
 

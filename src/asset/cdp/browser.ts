@@ -25,21 +25,39 @@ export async function connectBrowser(): Promise<Browser> {
   return browser;
 }
 
-export async function getFreepikPage(): Promise<Page> {
+export async function getFreepikImagePage(): Promise<Page> {
   const b = await connectBrowser();
   const pages = await b.pages();
 
-  const freepikPage = pages.find(p => p.url().includes("freepik.com/pikaso"));
-  if (freepikPage) {
-    log("info", "기존 Freepik 탭 재사용");
-    return freepikPage;
+  const found = pages.find(p => p.url().includes("ai-image-generator"));
+  if (found) {
+    log("info", "기존 Freepik 이미지 탭 재사용");
+    return found;
   }
 
   const newPage = await b.newPage();
   const config = loadProjectConfig();
   await newPage.setViewport(config.chrome.viewport);
   await newPage.goto("https://www.freepik.com/pikaso/ai-image-generator", { waitUntil: "networkidle2" });
-  log("info", "새 Freepik 탭 생성");
+  log("info", "새 Freepik 이미지 탭 생성");
+  return newPage;
+}
+
+export async function getFreepikVideoPage(): Promise<Page> {
+  const b = await connectBrowser();
+  const pages = await b.pages();
+
+  const found = pages.find(p => p.url().includes("ai-video-generator"));
+  if (found) {
+    log("info", "기존 Freepik 영상 탭 재사용");
+    return found;
+  }
+
+  const newPage = await b.newPage();
+  const config = loadProjectConfig();
+  await newPage.setViewport(config.chrome.viewport);
+  await newPage.goto("https://www.freepik.com/pikaso/ai-video-generator", { waitUntil: "networkidle2" });
+  log("info", "새 Freepik 영상 탭 생성");
   return newPage;
 }
 

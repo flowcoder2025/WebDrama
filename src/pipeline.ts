@@ -14,7 +14,7 @@ import {
 import { scenarioPrompt, parseScenarioResponse, extractAllScenes, validateHooking } from "./story/scenario.js";
 import { dialoguePrompt, narrationPrompt, parseDialogueResponse } from "./story/dialogue.js";
 import { assembleProductionSpec, validateProductionSpec } from "./story/prompt-builder.js";
-import { getFreepikPage } from "./asset/cdp/browser.js";
+import { getFreepikImagePage, getFreepikVideoPage } from "./asset/cdp/browser.js";
 import { generateImage, saveImage } from "./asset/cdp/image-gen.js";
 import { generateVideo, saveVideo } from "./asset/cdp/video-gen.js";
 import { loadSeedStore, saveSeedStore, injectCharacterConsistency, adaptMotionPrompt } from "./asset/cdp/character-seed.js";
@@ -259,7 +259,7 @@ export function getDialoguePrompts(
 }
 
 /**
- * Phase 4: 이미지 에셋 생성 (execution 팀)
+ * Phase 4: 이미지 에셋 생성 (리드 실행)
  */
 export async function executeImageGeneration(state: PipelineState): Promise<PipelineState> {
   log("info", "[Phase 4a] 이미지 생성");
@@ -268,7 +268,7 @@ export async function executeImageGeneration(state: PipelineState): Promise<Pipe
     throw new Error("production-spec이 없음", { cause: null });
   }
 
-  const page = await getFreepikPage();
+  const page = await getFreepikImagePage();
   const seedStore = loadSeedStore(state.projectDir);
 
   for (const scene of state.productionSpec.scenes) {
@@ -282,7 +282,7 @@ export async function executeImageGeneration(state: PipelineState): Promise<Pipe
 }
 
 /**
- * Phase 4b: 영상 에셋 생성 (execution 팀)
+ * Phase 4b: 영상 에셋 생성 (리드 실행)
  */
 export async function executeVideoGeneration(state: PipelineState): Promise<PipelineState> {
   log("info", "[Phase 4b] 영상 생성");
@@ -291,7 +291,7 @@ export async function executeVideoGeneration(state: PipelineState): Promise<Pipe
     throw new Error("production-spec이 없음", { cause: null });
   }
 
-  const page = await getFreepikPage();
+  const page = await getFreepikVideoPage();
 
   for (const scene of state.productionSpec.scenes) {
     if (!scene.videoPrompt) continue;
@@ -311,7 +311,7 @@ export async function executeVideoGeneration(state: PipelineState): Promise<Pipe
 }
 
 /**
- * Phase 5a: TTS 음성 생성 (execution 팀)
+ * Phase 5a: TTS 음성 생성 (리드 실행)
  */
 export async function executeVoiceGeneration(state: PipelineState): Promise<PipelineState> {
   log("info", "[Phase 5a] 음성 생성");
@@ -328,7 +328,7 @@ export async function executeVoiceGeneration(state: PipelineState): Promise<Pipe
 }
 
 /**
- * Phase 5b: BGM 생성 (execution 팀)
+ * Phase 5b: BGM 생성 (리드 실행)
  */
 export async function executeBgmGeneration(state: PipelineState): Promise<PipelineState> {
   log("info", "[Phase 5b] BGM 생성");
@@ -346,7 +346,7 @@ export async function executeBgmGeneration(state: PipelineState): Promise<Pipeli
 }
 
 /**
- * Phase 6: Remotion 렌더링 (execution 팀)
+ * Phase 6: Remotion 렌더링 (리드 실행)
  */
 export async function executeRender(state: PipelineState, format: "shorts" | "longform"): Promise<PipelineState> {
   log("info", "[Phase 6] 렌더링");
@@ -441,7 +441,7 @@ export function getPipelineStatus(state: PipelineState): string {
 
 /**
  * 전체 파이프라인 실행 (에셋 생성 → 렌더링)
- * creative 팀이 Phase 1~3을 완료한 후, execution 팀이 이 함수를 호출
+ * creative 팀이 Phase 1~3을 완료한 후, 리드가 이 함수를 호출
  */
 export async function runAssetAndRender(
   state: PipelineState,

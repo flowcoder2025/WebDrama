@@ -65,7 +65,7 @@ src/
 │   ├── cdp/           # Freepik CDP 자동화
 │   ├── tts/           # TTS 음성 생성
 │   └── bgm/           # ACE-Step BGM
-├── editor/            # execution 팀 - 편집
+├── editor/            # 실행 에이전트 - 편집
 │   ├── compositions/  # Remotion 컴포넌트
 │   └── renderer.ts    # 렌더링 실행
 └── common/            # 공유 타입/설정/로거
