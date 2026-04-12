@@ -13,7 +13,7 @@ describe("설정 로더", () => {
 
   it("loadFreepikConfig — freepik.json 정상 로드", () => {
     const config = loadFreepikConfig();
-    expect(config.image.model).toBe("Nano Banana Pro 2");
+    expect(config.image.model).toBe("Google Nano Banana 2");
     expect(config.image.width).toBe(2752);
     expect(config.video.model).toBe("Kling 2.5");
   });

@@ -1,6 +1,6 @@
 {
   "image": {
-    "model": "Nano Banana Pro 2",
+    "model": "Google Nano Banana 2",
     "ratio": "16:9",
     "resolution": "2K",
     "width": 2752,
@@ -17,7 +17,7 @@
     "height": 716,
     "duration": 5,
     "timeout": 600000,
-    "uploadSelector": "input[type=file][accept*=image]"
+    "uploadSelector": "input[type=file]"
   },
   "download": {
     "method": "xhr-arraybuffer",

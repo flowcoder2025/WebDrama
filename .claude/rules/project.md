@@ -32,7 +32,6 @@
 - 파일 읽기/쓰기 시 utf-8 명시
 
 ## 프로젝트 고유 규칙
-<!-- /wi:init에서 스택별 규칙 추가 -->
 
 ## 워크플로우
 - `/wi:init` → `/wi:prd` → `/wi:env` → `/wi:start` → `/wi:status`
