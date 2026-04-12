@@ -36,5 +36,12 @@ GITHUB_ORG="flowcoder2025"
 # Obsidian 미설치 시 preflight에서 자동 감지 → graceful degradation.
 VAULT_ENABLED=true
 VAULT_URL="https://localhost:27124"
-VAULT_API_KEY=""         # .flowsetrc.local에서 로드 (gitignore됨)
+VAULT_API_KEY=""         # .flowsetrc.local에서 오버라이드 (gitignore됨)
+
+# 로컬 오버라이드 로드 (API 키 등 시크릿)
+if [[ -f "$(dirname "${BASH_SOURCE[0]:-$0}")/.flowsetrc.local" ]]; then
+  source "$(dirname "${BASH_SOURCE[0]:-$0}")/.flowsetrc.local"
+elif [[ -f ".flowsetrc.local" ]]; then
+  source ".flowsetrc.local"
+fi
 VAULT_PROJECT_NAME="WebDrama"
