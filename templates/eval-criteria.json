@@ -1,0 +1,27 @@
+{
+  "criteria": [
+    {
+      "name": "스토리 구조",
+      "weight": 0.30,
+      "description": "리서치 성공 패턴 반영, 후킹, 감정 아크"
+    },
+    {
+      "name": "비주얼 일관성",
+      "weight": 0.25,
+      "description": "장면 간 화풍/색감 통일, 명세서 충실도"
+    },
+    {
+      "name": "음성 품질",
+      "weight": 0.20,
+      "description": "캐릭터 음성 일관성, 감정 톤 적합성"
+    },
+    {
+      "name": "편집 완성도",
+      "weight": 0.25,
+      "description": "타이밍, 전환, BGM 싱크, 자막 정확성"
+    }
+  ],
+  "pass": 10,
+  "rework": { "min": 5, "max": 9.9, "maxRetries": 10 },
+  "regenerate": { "below": 5 }
+}

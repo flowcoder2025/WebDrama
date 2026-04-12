@@ -1,0 +1,26 @@
+{
+  "image": {
+    "model": "Nano Banana Pro 2",
+    "ratio": "16:9",
+    "resolution": "2K",
+    "width": 2752,
+    "height": 1536,
+    "timeout": 300000,
+    "generateSelector": "[data-cy=\"generate-button\"]",
+    "resultSelector": "img[src*=\"pikaso\"]"
+  },
+  "video": {
+    "model": "Kling 2.5",
+    "ratio": "16:9",
+    "resolution": "720p",
+    "width": 1284,
+    "height": 716,
+    "duration": 5,
+    "timeout": 600000,
+    "uploadSelector": "input[type=file][accept*=image]"
+  },
+  "download": {
+    "method": "xhr-arraybuffer",
+    "chunkSize": 8192
+  }
+}

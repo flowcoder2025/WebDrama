@@ -1,0 +1,19 @@
+{
+  "gl": "angle",
+  "concurrency": 4,
+  "codec": "h264",
+  "pixelFormat": "yuv420p",
+  "crf": 18,
+  "audioBitrate": "320k",
+  "shorts": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "maxDurationInFrames": 1800
+  },
+  "longform": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  }
+}

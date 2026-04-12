@@ -46,6 +46,9 @@ desktop.ini
 .flowset/teams/
 .flowset/eval-results/
 
+# Generated content (local only)
+projects/
+
 # Parallel worktree (flowset.sh 자동 생성/정리)
 .worktrees/
 

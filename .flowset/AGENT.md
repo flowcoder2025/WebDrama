@@ -30,13 +30,28 @@ npm install
 ```
 
 ## 인프라 환경
-<!-- /wi:env에서 자동 채워짐 -->
 
-### 외부 서비스 (로컬)
-- **Freepik CDP**: Chrome --remote-debugging-port=9222
-- **ACE-Step 1.5XL**: localhost:8001 (로컬 GPU, BGM 생성)
-- **Qwen3-TTS**: localhost:8002 (로컬 GPU, TTS)
-- **GPT-SoVITS**: localhost:8003 (로컬 GPU, TTS)
+### 로컬 하드웨어
+- **GPU**: NVIDIA RTX 4070 (12GB VRAM)
+- **VRAM 제약**: TTS와 BGM 동시 실행 불가 → 순차 처리 필수
+
+### 로컬 서비스
+| 서비스 | 포트 | 상태 | 설정 파일 |
+|--------|------|------|----------|
+| Chrome CDP | 9222 | 설치됨 | config/freepik.json |
+| ACE-Step 1.5XL | 8001 | XL 모델 미다운로드 | config/bgm.json |
+| Qwen3-TTS | 8002 | 미설치 | config/tts.json |
+| GPT-SoVITS | 8003 | 미설치 | config/tts.json |
+
+### 외부 서비스
+- 없음 (전부 로컬)
+
+### DB
+- 없음 (파일 기반 JSON)
+
+### mock 정책
+- DB 없으므로 mock 불필요
+- TTS/BGM 서버 미실행 시 → edge-tts fallback 또는 에러 로그 + 스킵
 
 ## 아키텍처 계약
 <!-- /wi:start Phase 4.6에서 자동 채워짐 -->

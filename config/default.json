@@ -1,0 +1,24 @@
+{
+  "chrome": {
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "cdpPort": 9222,
+    "userDataDir": "C:/Users/User/chrome-cdp",
+    "protocolTimeout": 180000,
+    "viewport": { "width": 1440, "height": 900 }
+  },
+  "output": {
+    "projectsDir": "./projects",
+    "defaultFormat": "shorts",
+    "shorts": { "width": 1080, "height": 1920, "maxDuration": 60, "fps": 30 },
+    "longform": { "width": 1920, "height": 1080, "fps": 30 },
+    "codec": "h264",
+    "crf": 18
+  },
+  "pipeline": {
+    "maxEvalRetries": 10,
+    "evalPassScore": 10,
+    "evalReworkMinScore": 5,
+    "promptVariants": 3,
+    "gpuSequential": true
+  }
+}

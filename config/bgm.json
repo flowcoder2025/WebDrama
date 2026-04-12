@@ -1,0 +1,24 @@
+{
+  "engine": "ace-step-1.5xl",
+  "baseUrl": "http://localhost:8001",
+  "status": "not-installed",
+  "installPath": "C:/Team-jane/Ace_step/ACE-Step-1.5",
+  "model": "acestep-v15-xl-sft",
+  "api": {
+    "releaseTask": "POST /release_task",
+    "queryResult": "POST /query_result",
+    "downloadAudio": "GET /v1/audio"
+  },
+  "defaults": {
+    "inferenceSteps": 50,
+    "thinking": true,
+    "maxDuration": 300,
+    "sampleRate": 44100
+  },
+  "gpu": {
+    "minVram": 12,
+    "currentGpu": "RTX 4070",
+    "currentVram": 12,
+    "notes": "12GB VRAM — xl-sft 사용 가능, TTS와 동시 실행 불가 (순차 처리)"
+  }
+}

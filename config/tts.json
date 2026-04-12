@@ -1,0 +1,32 @@
+{
+  "activeEngine": "qwen3",
+  "engines": {
+    "qwen3": {
+      "name": "Qwen3-TTS",
+      "baseUrl": "http://localhost:8002",
+      "status": "not-installed",
+      "features": ["voice-cloning", "korean", "commercial"],
+      "cloningSampleDuration": 3,
+      "notes": "Apache 2.0, 3초 샘플 클로닝"
+    },
+    "gpt-sovits": {
+      "name": "GPT-SoVITS",
+      "baseUrl": "http://localhost:8003",
+      "status": "not-installed",
+      "features": ["voice-cloning", "korean", "commercial"],
+      "cloningSampleDuration": 60,
+      "notes": "MIT, 1분 데이터 학습"
+    },
+    "edge-tts": {
+      "name": "Edge-TTS",
+      "baseUrl": null,
+      "status": "available",
+      "features": ["korean"],
+      "notes": "fallback 전용, 클로닝 불가"
+    }
+  },
+  "defaultVoice": {
+    "narrator": "male_adult_calm",
+    "language": "ko-KR"
+  }
+}
