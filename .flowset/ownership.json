@@ -2,7 +2,7 @@
   "teams": {
     "creative": ["src/research/**", "src/story/**", "templates/**"],
     "execution": ["src/asset/**", "src/editor/**", "projects/**/assets/**", "projects/**/output/**"],
-    "qa": ["src/evaluator/**", "tests/**"],
+    "qa": ["tests/**"],
     "devops": [".github/**", ".claude/**", ".flowset/**"],
     "planning": ["docs/**"]
   },

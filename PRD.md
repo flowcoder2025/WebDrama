@@ -30,7 +30,7 @@ FlowSet의 기존 팀 시스템을 사용합니다:
 |-----------|------|---------|-------------|
 | creative | 창작 | 10년차 웹드라마 작가 겸 연출가 | src/research/**, src/story/**, templates/** |
 | execution | 실행 | 콘텐츠 제작 엔지니어 | src/asset/**, src/editor/**, projects/**/assets/**, projects/**/output/** |
-| qa | QA | Evaluator 채점 로직 | src/evaluator/**, tests/** |
+| qa | QA | 테스트 작성/실행 | tests/** |
 | devops | DevOps | CI/CD, 인프라 | .github/**, .claude/**, .flowset/** |
 | planning | 기획 | PRD, 요구사항 | docs/** |
 
@@ -50,7 +50,7 @@ FlowSet의 기존 팀 시스템을 사용합니다:
 | 점수 | 판정 |
 |------|------|
 | 10점 | Pass → 사용자 리뷰 |
-| 5~9.9점 | 피드백 + 창작 에이전트 재작업 (최대 10회) |
+| 5~9.9점 | 피드백 + creative 팀 재작업 (최대 10회) |
 | 5점 미만 | 전면 재생성 (처음부터 다시) |
 | 10회 초과 | 현재 최고 점수 버전 + 피드백을 사용자에게 제시 → 직접 판단 |
 
@@ -419,17 +419,18 @@ YouTube Shorts 형식 출력
 스토리 구조, 비주얼 일관성, 음성 품질, 편집 완성도
 
 ##### 태스크 (L4)
-34. **Evaluator 채점 엔진**
-    - research-report + production-spec + 에셋을 대조하여 4대 기준 채점
-    - 수용 기준: eval-report.json 생성 (점수 + 항목별 피드백)
+34. **Evaluator 채점 기준 설정**
+    - templates/eval-criteria.json + 스프린트 계약에 프로젝트별 기준 반영
+    - FlowSet evaluator 에이전트(.claude/agents/evaluator.md)가 채점 수행
+    - 수용 기준: evaluator spawn 시 4대 기준으로 정확히 채점
 
 #### L3: 재작업/재생성 판정
-점수에 따른 자동 판정
+점수에 따른 판정 (FlowSet lead-workflow가 관리)
 
 ##### 태스크 (L4)
-35. **재작업 컨트롤러**
-    - 10점=통과, 5~9.9=재작업(최대 10회), 5미만=전면재생성
-    - 수용 기준: 판정에 따라 정확한 흐름 분기
+35. **재작업 흐름 검증**
+    - lead-workflow가 10점=통과, 5~9.9=재작업(최대 10회), 5미만=전면재생성 흐름 정확히 수행
+    - 수용 기준: 판정에 따라 팀원에게 정확한 지시 전달
 
 ### L2: 사용자 리뷰
 
@@ -454,14 +455,14 @@ Evaluator 통과 후 사용자에게 결과물 제시
 ```
 WebDrama/
 ├── src/
-│   ├── research/                 # 리서치 모듈
+│   ├── research/                 # creative 팀 - 리서치
 │   │   ├── analyzer.ts
 │   │   └── trend.ts
-│   ├── story/                    # 창작 에이전트 모듈
+│   ├── story/                    # creative 팀 - 대본/프롬프트
 │   │   ├── scenario.ts
 │   │   ├── dialogue.ts
 │   │   └── prompt-builder.ts
-│   ├── asset/                    # 실행 에이전트 - 에셋
+│   ├── asset/                    # execution 팀 - 에셋
 │   │   ├── cdp/
 │   │   │   ├── browser.ts
 │   │   │   ├── image-gen.ts
@@ -472,16 +473,13 @@ WebDrama/
 │   │   │   └── gpt-sovits.ts
 │   │   └── bgm/
 │   │       └── ace-step.ts
-│   ├── editor/                   # 실행 에이전트 - 편집
+│   ├── editor/                   # execution 팀 - 편집
 │   │   ├── compositions/
 │   │   │   ├── Scene.tsx
 │   │   │   ├── Subtitle.tsx
 │   │   │   ├── Transition.tsx
 │   │   │   └── Drama.tsx
 │   │   └── renderer.ts
-│   ├── evaluator/                # Evaluator 모듈
-│   │   ├── scorer.ts
-│   │   └── feedback.ts
 │   └── common/                   # 공유
 │       ├── types.ts
 │       ├── config.ts
@@ -519,11 +517,12 @@ WebDrama/
 
 ## 에이전트별 소유 경계
 
-| 에이전트 | 쓰기 가능 | 읽기 가능 |
-|---------|----------|----------|
-| 창작 | projects/*/production-spec.json, projects/*/research-report.json | templates/, config/, voices/profiles.json |
-| 실행 | projects/*/assets/**, projects/*/output/** | projects/*/production-spec.json, config/, voices/ |
-| Evaluator | projects/*/eval-report.json | projects/*/ 전체 (읽기 전용) |
+| TEAM_NAME | 쓰기 가능 | 읽기 가능 |
+|-----------|----------|----------|
+| creative | src/research/**, src/story/**, templates/**, projects/*/production-spec.json, projects/*/research-report.json | config/, voices/profiles.json |
+| execution | src/asset/**, src/editor/**, projects/*/assets/**, projects/*/output/** | projects/*/production-spec.json, config/, voices/ |
+| qa | tests/** | projects/*/ 전체 (읽기 전용) |
+| Evaluator (FlowSet 에이전트) | projects/*/eval-report.json | projects/*/ 전체 (읽기 전용) |
 
 ## 비기능 요구사항
 - GPU VRAM 12GB+ (ACE-Step 1.5XL 실행)

@@ -8,7 +8,7 @@
 |-----------|------|-------------|------|
 | creative | 창작 (Creative Director) | src/research/**, src/story/**, templates/** | 리서치, 시나리오, 대사, 프롬프트, 편집 명세 생성 |
 | execution | 실행 (Production Engineer) | src/asset/**, src/editor/**, projects/**/assets/**, projects/**/output/** | CDP 에셋 생성, TTS/BGM 호출, Remotion 렌더링 |
-| qa | QA | src/evaluator/**, tests/** | Evaluator 채점 로직, 테스트 |
+| qa | QA | tests/** | 테스트 작성/실행 (Evaluator는 FlowSet 에이전트가 담당) |
 | devops | DevOps | .github/**, .claude/**, .flowset/** | CI/CD, 인프라, 배포, 설정 |
 | planning | 기획 | docs/** | PRD, 요구사항 정리 |
 
