@@ -1,0 +1,45 @@
+{
+  "name": "webdrama",
+  "version": "0.1.0",
+  "description": "프롬프트 기반 웹드라마/애니메이션 자동 제작 파이프라인",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "lint": "eslint src/",
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flowcoder2025/WebDrama.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/flowcoder2025/WebDrama/issues"
+  },
+  "homepage": "https://github.com/flowcoder2025/WebDrama#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.6.0",
+    "eslint": "^10.2.0",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.1",
+    "vitest": "^4.1.4"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.448",
+    "@remotion/renderer": "^4.0.448",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "edge-tts": "^1.0.1",
+    "puppeteer": "^24.40.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.448"
+  }
+}
