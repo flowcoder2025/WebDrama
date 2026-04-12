@@ -56,6 +56,7 @@ export interface PipelineState {
   assetsDir: string;
   outputDir: string;
   researchReport: ResearchReport | null;
+  scenarioResponse: string | null;
   productionSpec: ProductionSpec | null;
   outputPath: string | null;
   evalAttempt: number;
@@ -84,6 +85,7 @@ export function initProjectDir(projectName: string): PipelineState {
     assetsDir,
     outputDir,
     researchReport: null,
+    scenarioResponse: null,
     productionSpec: null,
     outputPath: null,
     evalAttempt: 0,
@@ -151,7 +153,18 @@ export function executeScenario(
     log("warn", `후킹 검증 경고: ${hookWarnings.join(", ")}`);
   }
 
-  return { ...state, phase: "dialogue" };
+  return { ...state, phase: "dialogue", scenarioResponse };
+}
+
+/**
+ * Phase 전이 검증 — 잘못된 순서로 호출 방지
+ */
+export function assertPhase(state: PipelineState, expected: PipelinePhase, functionName: string): void {
+  if (state.phase !== expected) {
+    throw new Error(
+      `${functionName}: 현재 phase '${state.phase}'이지만 '${expected}'이어야 합니다`,
+    );
+  }
 }
 
 /**
@@ -338,6 +351,10 @@ export async function executeBgmGeneration(state: PipelineState): Promise<Pipeli
 export async function executeRender(state: PipelineState, format: "shorts" | "longform"): Promise<PipelineState> {
   log("info", "[Phase 6] 렌더링");
 
+  if (!state.productionSpec) {
+    throw new Error("production-spec이 없음 — Phase 3까지 먼저 완료하세요");
+  }
+
   const specPath = resolve(state.projectDir, "production-spec.json");
   const outputPath = resolve(state.outputDir, `final_${format}.mp4`);
 
@@ -420,4 +437,29 @@ export function getPipelineStatus(state: PipelineState): string {
     `Output: ${state.outputPath ?? "없음"}`,
     `Eval 시도: ${state.evalAttempt}회`,
   ].join("\n");
+}
+
+/**
+ * 전체 파이프라인 실행 (에셋 생성 → 렌더링)
+ * creative 팀이 Phase 1~3을 완료한 후, execution 팀이 이 함수를 호출
+ */
+export async function runAssetAndRender(
+  state: PipelineState,
+  format: "shorts" | "longform",
+): Promise<PipelineState> {
+  if (!state.productionSpec) {
+    throw new Error("production-spec이 없음 — Phase 3까지 먼저 완료하세요");
+  }
+
+  log("info", "=== 에셋 생성 + 렌더링 시작 ===");
+
+  let current = state;
+  current = await executeImageGeneration(current);
+  current = await executeVideoGeneration(current);
+  current = await executeVoiceGeneration(current);
+  current = await executeBgmGeneration(current);
+  current = await executeRender(current, format);
+
+  log("info", "=== 에셋 생성 + 렌더링 완료 ===");
+  return current;
 }

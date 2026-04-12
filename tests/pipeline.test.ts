@@ -9,7 +9,13 @@ import {
   executeScenario,
   getDialoguePrompts,
   executeDialogueAndAssemble,
+  executeImageGeneration,
+  executeVideoGeneration,
+  executeVoiceGeneration,
+  executeBgmGeneration,
+  executeRender,
   executeEvaluation,
+  assertPhase,
   getPipelineStatus,
 } from "../src/pipeline.js";
 import type { Character, EvalScores } from "../src/common/types.js";
@@ -218,5 +224,72 @@ describe("파이프라인 — Phase 7: 검수", () => {
 
     executeEvaluation(state, makeScores(10, 10, 10, 10), [], [], "");
     expect(existsSync(resolve(state.projectDir, "eval-report.json"))).toBe(true);
+  });
+
+  it("ESCALATE 판정 (10회 초과)", () => {
+    let state = initProjectDir(TEST_PROJECT);
+    state = executeResearch(state, mockResearchResponses, "romance");
+    state = executeDialogueAndAssemble(state, {
+      userPrompt: "t", projectName: TEST_PROJECT,
+      format: "shorts", characters: mockChars, genre: "romance",
+    }, mockScenarioResponse, new Map(), new Map());
+
+    state = { ...state, evalAttempt: 9 };
+    const { verdict, summary } = executeEvaluation(
+      state, makeScores(7, 7, 7, 7), [], [], "수정필요",
+    );
+    expect(verdict).toBe("ESCALATE");
+    expect(summary).toContain("사용자 판단 필요");
+  });
+});
+
+describe("파이프라인 — Phase 4~6 guard clause", () => {
+  it("Phase 4a: productionSpec 없으면 에러", async () => {
+    const state = initProjectDir(TEST_PROJECT);
+    await expect(executeImageGeneration(state)).rejects.toThrow("production-spec이 없음");
+  });
+
+  it("Phase 4b: productionSpec 없으면 에러", async () => {
+    const state = initProjectDir(TEST_PROJECT);
+    await expect(executeVideoGeneration(state)).rejects.toThrow("production-spec이 없음");
+  });
+
+  it("Phase 5a: productionSpec 없으면 에러", async () => {
+    const state = initProjectDir(TEST_PROJECT);
+    await expect(executeVoiceGeneration(state)).rejects.toThrow("production-spec이 없음");
+  });
+
+  it("Phase 5b: productionSpec 없으면 에러", async () => {
+    const state = initProjectDir(TEST_PROJECT);
+    await expect(executeBgmGeneration(state)).rejects.toThrow("production-spec이 없음");
+  });
+
+  it("Phase 6: productionSpec 없으면 에러", async () => {
+    const state = initProjectDir(TEST_PROJECT);
+    await expect(executeRender(state, "shorts")).rejects.toThrow("production-spec이 없음");
+  });
+});
+
+describe("파이프라인 — Phase 전이 검증", () => {
+  it("assertPhase — 올바른 phase", () => {
+    const state = initProjectDir(TEST_PROJECT);
+    expect(() => assertPhase(state, "research", "test")).not.toThrow();
+  });
+
+  it("assertPhase — 잘못된 phase", () => {
+    const state = initProjectDir(TEST_PROJECT);
+    expect(() => assertPhase(state, "render", "test")).toThrow("현재 phase 'research'이지만 'render'이어야");
+  });
+});
+
+describe("파이프라인 — scenarioResponse state 저장", () => {
+  it("Phase 2 후 scenarioResponse가 state에 저장됨", () => {
+    let state = initProjectDir(TEST_PROJECT);
+    state = executeResearch(state, mockResearchResponses, "romance");
+    state = executeScenario(state, {
+      userPrompt: "고등학교 로맨스", projectName: TEST_PROJECT,
+      format: "shorts", characters: mockChars, genre: "romance",
+    }, mockScenarioResponse);
+    expect(state.scenarioResponse).toBe(mockScenarioResponse);
   });
 });
