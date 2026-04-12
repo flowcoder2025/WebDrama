@@ -31,7 +31,15 @@ export function calculateWeightedTotal(scores: EvalScores): number {
     scores.editingCompleteness,
   ];
 
-  const total = items.reduce((sum, item) => sum + item.score * item.weight, 0);
+  const weightSum = items.reduce((sum, item) => sum + item.weight, 0);
+  if (Math.abs(weightSum - 1.0) > 0.01) {
+    log("warn", `가중치 합계가 1.0이 아님: ${weightSum}`);
+  }
+
+  const total = items.reduce((sum, item) => {
+    const clampedScore = Math.max(0, Math.min(10, item.score));
+    return sum + clampedScore * item.weight;
+  }, 0);
   return Math.round(total * 100) / 100;
 }
 
@@ -74,7 +82,7 @@ export function buildEvalReport(
     sprintContract,
     scores,
     weightedTotal,
-    verdict: verdict === "ESCALATE" ? "REWORK" : verdict,
+    verdict,
     antiPatterns,
     issues,
     recommendation: verdict === "ESCALATE"

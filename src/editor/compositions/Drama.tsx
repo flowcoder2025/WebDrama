@@ -62,7 +62,7 @@ export const Drama: React.FC<DramaProps> = ({ assetsDir, spec }) => {
           sceneId={scene.id}
           duration={scene.duration}
           assetsDir={assetsDir}
-          hasVideo={true}
+          hasVideo={!!scene.videoPrompt}
           dialogues={dialogueTimeline}
           narration={scene.narration}
           bgmVolume={scene.bgm.volume}

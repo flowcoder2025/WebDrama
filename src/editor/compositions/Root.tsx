@@ -1,6 +1,6 @@
 import React from "react";
 import { Composition } from "remotion";
-import { Drama, type DramaProps } from "./Drama";
+import { Drama } from "./Drama";
 
 export const RemotionRoot: React.FC = () => {
   return (

@@ -6,6 +6,23 @@ import type { ProductionSpec } from "../common/types.js";
 import { loadRemotionConfig } from "../common/config.js";
 import { log } from "../common/logger.js";
 
+type Codec = "h264" | "h265" | "vp8" | "vp9" | "mp3" | "aac" | "wav" | "prores" | "gif";
+type GlRenderer = "angle" | "egl" | "swangle" | "swiftshader" | "vulkan";
+
+function validateCodec(codec: string): Codec {
+  const valid: Codec[] = ["h264", "h265", "vp8", "vp9", "mp3", "aac", "wav", "prores", "gif"];
+  if (valid.includes(codec as Codec)) return codec as Codec;
+  log("warn", `잘못된 codec '${codec}', h264로 fallback`);
+  return "h264";
+}
+
+function validateGl(gl: string): GlRenderer {
+  const valid: GlRenderer[] = ["angle", "egl", "swangle", "swiftshader", "vulkan"];
+  if (valid.includes(gl as GlRenderer)) return gl as GlRenderer;
+  log("warn", `잘못된 gl '${gl}', angle로 fallback`);
+  return "angle";
+}
+
 export interface RenderOptions {
   specPath: string;
   assetsDir: string;
@@ -59,7 +76,7 @@ export async function renderDrama(options: RenderOptions): Promise<string> {
       durationInFrames: totalFrames,
     },
     serveUrl: bundled,
-    codec: config.codec as "h264",
+    codec: validateCodec(config.codec),
     outputLocation: outputPath,
     inputProps: {
       specPath: options.specPath,
@@ -70,7 +87,7 @@ export async function renderDrama(options: RenderOptions): Promise<string> {
     concurrency: config.concurrency,
     crf: config.crf,
     audioBitrate: config.audioBitrate as `${number}k`,
-    chromiumOptions: { gl: config.gl as "angle" },
+    chromiumOptions: { gl: validateGl(config.gl) },
   });
 
   log("info", `렌더링 완료: ${outputPath}`);
