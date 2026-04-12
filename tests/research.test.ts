@@ -10,9 +10,11 @@ import {
   validateResearchReport,
 } from "../src/research/analyzer.js";
 import { buildTrendKeyword, sortByVolume, filterOpportunities } from "../src/research/trend.js";
-import { extractJsonFromResponse, parseStoryPatterns, parseTrendKeywords, parseChannelBenchmarks } from "../src/research/parser.js";
+import { extractJsonFromResponse, parseStoryPatterns, parseVisualPatterns, parseHookingPatterns, parseTrendKeywords, parseChannelBenchmarks } from "../src/research/parser.js";
 import { buildResearchFromResponses } from "../src/research/pipeline.js";
-import { channelCollectorPrompt, storyPatternPrompt } from "../src/research/prompts.js";
+import { channelCollectorPrompt, storyPatternPrompt, visualPatternPrompt, hookingPatternPrompt, trendKeywordPrompt } from "../src/research/prompts.js";
+import { saveResearchReport } from "../src/research/pipeline.js";
+import { mkdirSync, rmSync, existsSync } from "node:fs";
 
 describe("리서치/분석 — 빌더", () => {
   it("StoryPattern 생성", () => {
@@ -155,5 +157,91 @@ describe("리서치/분석 — 프롬프트 템플릿", () => {
     const prompt = storyPatternPrompt("thriller");
     expect(prompt).toContain("thriller");
     expect(prompt).toContain("3개 이상");
+  });
+
+  it("visualPatternPrompt에 장르 포함", () => {
+    const prompt = visualPatternPrompt("romance");
+    expect(prompt).toContain("romance");
+    expect(prompt).toContain("화풍");
+  });
+
+  it("hookingPatternPrompt에 3가지 유형 포함", () => {
+    const prompt = hookingPatternPrompt();
+    expect(prompt).toContain("opening");
+    expect(prompt).toContain("cliffhanger");
+    expect(prompt).toContain("next-episode");
+  });
+
+  it("trendKeywordPrompt에 카테고리 포함", () => {
+    const prompt = trendKeywordPrompt("웹드라마");
+    expect(prompt).toContain("웹드라마");
+    expect(prompt).toContain("검색량");
+  });
+});
+
+describe("리서치/분석 — 파서 직접 테스트", () => {
+  it("parseVisualPatterns 직접 파싱", () => {
+    const data = [{ genre: "romance", style: "anime", colorPalette: ["#fff"], composition: "wide", thumbnailStyle: "face" }];
+    const result = parseVisualPatterns(data as unknown[]);
+    expect(result).toHaveLength(1);
+    expect(result[0].style).toBe("anime");
+  });
+
+  it("parseHookingPatterns 직접 파싱", () => {
+    const data = [{ type: "opening", description: "질문형", examples: ["왜?"] }];
+    const result = parseHookingPatterns(data as unknown[]);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("opening");
+  });
+
+  it("parseHookingPatterns — 잘못된 type 무시", () => {
+    const data = [{ type: "invalid", description: "test", examples: [] }];
+    const result = parseHookingPatterns(data as unknown[]);
+    expect(result).toHaveLength(0);
+  });
+
+  it("파서 — 비객체 아이템 무시 (타입가드)", () => {
+    const data = ["string", 123, null, true] as unknown[];
+    expect(parseStoryPatterns(data)).toHaveLength(0);
+    expect(parseVisualPatterns(data)).toHaveLength(0);
+    expect(parseHookingPatterns(data)).toHaveLength(0);
+    expect(parseTrendKeywords(data)).toHaveLength(0);
+    expect(parseChannelBenchmarks(data)).toHaveLength(0);
+  });
+});
+
+describe("리서치/분석 — 빌더 입력 검증", () => {
+  it("buildStoryPattern — 음수 duration → 0", () => {
+    const p = buildStoryPattern("genre", "struct", -100, -5, "src");
+    expect(p.avgDuration).toBe(0);
+    expect(p.episodeCount).toBe(1);
+  });
+
+  it("buildChannelBenchmark — 음수 subscribers → 0", () => {
+    const b = buildChannelBenchmark("ch", -100, -200, "weekly", -3, []);
+    expect(b.subscribers).toBe(0);
+    expect(b.avgViews).toBe(0);
+    expect(b.engagementRate).toBe(0);
+  });
+});
+
+describe("리서치/분석 — saveResearchReport", () => {
+  const tmpDir = "./projects/_test_save";
+
+  it("리포트 파일 저장", () => {
+    const success = assembleSuccessPatterns(
+      [buildStoryPattern("r", "s", 600, 3, "x")],
+      [buildVisualPattern("r", "anime", [], "w", "f")],
+      [buildHookingPattern("opening", "q", ["a"])],
+    );
+    const trend = assembleTrendAnalysis(
+      [buildTrendKeyword("k", 100, "low", true)],
+      [buildChannelBenchmark("c", 100, 200, "w", 1, [])],
+    );
+    const report = assembleResearchReport(success, trend);
+
+    const path = saveResearchReport(report, tmpDir);
+    expect(existsSync(path)).toBe(true);
+    rmSync(tmpDir, { recursive: true, force: true });
   });
 });

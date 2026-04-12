@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 import { loadConfig, loadProjectConfig, loadFreepikConfig, loadTtsConfig, loadBgmConfig, loadRemotionConfig } from "../src/common/config.js";
 
 describe("설정 로더", () => {
@@ -39,5 +41,33 @@ describe("설정 로더", () => {
 
   it("존재하지 않는 파일 로드 시 에러", () => {
     expect(() => loadConfig("nonexistent.json")).toThrow("설정 파일 로드 실패");
+  });
+
+  it("잘못된 JSON 파일 로드 시 에러", () => {
+    const tmpDir = resolve("config");
+    const tmpFile = resolve(tmpDir, "_test_invalid.json");
+    writeFileSync(tmpFile, "{ invalid json }", "utf-8");
+    try {
+      expect(() => loadConfig("_test_invalid.json")).toThrow("설정 파일 로드 실패");
+    } finally {
+      rmSync(tmpFile);
+    }
+  });
+});
+
+describe("로거", () => {
+  it("log info 호출 시 에러 없음", async () => {
+    const { log } = await import("../src/common/logger.js");
+    expect(() => log("info", "테스트 메시지")).not.toThrow();
+  });
+
+  it("log error 호출 시 에러 없음", async () => {
+    const { log } = await import("../src/common/logger.js");
+    expect(() => log("error", "에러 메시지")).not.toThrow();
+  });
+
+  it("log warn 호출 시 에러 없음", async () => {
+    const { log } = await import("../src/common/logger.js");
+    expect(() => log("warn", "경고 메시지")).not.toThrow();
   });
 });
