@@ -68,7 +68,8 @@ function tryParseJson(text: string): unknown | null {
 export function parseStoryPatterns(data: unknown[]): StoryPattern[] {
   const patterns: StoryPattern[] = [];
   for (const item of flattenArray(data)) {
-    const obj = item as Record<string, unknown>;
+    if (!isRecord(item)) continue;
+    const obj = item;
     if (typeof obj.genre === "string" && typeof obj.structure === "string") {
       patterns.push({
         genre: obj.genre,
@@ -85,7 +86,8 @@ export function parseStoryPatterns(data: unknown[]): StoryPattern[] {
 export function parseVisualPatterns(data: unknown[]): VisualPattern[] {
   const patterns: VisualPattern[] = [];
   for (const item of flattenArray(data)) {
-    const obj = item as Record<string, unknown>;
+    if (!isRecord(item)) continue;
+    const obj = item;
     if (typeof obj.genre === "string" && typeof obj.style === "string") {
       patterns.push({
         genre: obj.genre,
@@ -103,7 +105,8 @@ export function parseHookingPatterns(data: unknown[]): HookingPattern[] {
   const validTypes = new Set(["opening", "cliffhanger", "next-episode"]);
   const patterns: HookingPattern[] = [];
   for (const item of flattenArray(data)) {
-    const obj = item as Record<string, unknown>;
+    if (!isRecord(item)) continue;
+    const obj = item;
     if (typeof obj.type === "string" && validTypes.has(obj.type)) {
       patterns.push({
         type: obj.type as HookingPattern["type"],
@@ -119,7 +122,8 @@ export function parseTrendKeywords(data: unknown[]): TrendKeyword[] {
   const validCompetitions = new Set(["low", "medium", "high"]);
   const keywords: TrendKeyword[] = [];
   for (const item of flattenArray(data)) {
-    const obj = item as Record<string, unknown>;
+    if (!isRecord(item)) continue;
+    const obj = item;
     if (typeof obj.keyword === "string" && obj.keyword.length > 0) {
       const comp = typeof obj.competition === "string" && validCompetitions.has(obj.competition)
         ? (obj.competition as TrendKeyword["competition"])
@@ -138,7 +142,8 @@ export function parseTrendKeywords(data: unknown[]): TrendKeyword[] {
 export function parseChannelBenchmarks(data: unknown[]): ChannelBenchmark[] {
   const benchmarks: ChannelBenchmark[] = [];
   for (const item of flattenArray(data)) {
-    const obj = item as Record<string, unknown>;
+    if (!isRecord(item)) continue;
+    const obj = item;
     if (typeof obj.channelName === "string" && obj.channelName.length > 0) {
       benchmarks.push({
         channelName: obj.channelName,
@@ -151,6 +156,10 @@ export function parseChannelBenchmarks(data: unknown[]): ChannelBenchmark[] {
     }
   }
   return benchmarks;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function flattenArray(data: unknown[]): unknown[] {

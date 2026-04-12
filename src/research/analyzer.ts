@@ -21,7 +21,14 @@ export function buildChannelBenchmark(
   engagementRate: number,
   topVideos: string[],
 ): ChannelBenchmark {
-  return { channelName, subscribers, avgViews, uploadFrequency, engagementRate, topVideos };
+  return {
+    channelName,
+    subscribers: Math.max(0, subscribers),
+    avgViews: Math.max(0, avgViews),
+    uploadFrequency,
+    engagementRate: Math.max(0, engagementRate),
+    topVideos,
+  };
 }
 
 /**
@@ -35,7 +42,13 @@ export function buildStoryPattern(
   episodeCount: number,
   source: string,
 ): StoryPattern {
-  return { genre, structure, avgDuration, episodeCount, source };
+  return {
+    genre,
+    structure,
+    avgDuration: Math.max(0, avgDuration),
+    episodeCount: Math.max(1, episodeCount),
+    source,
+  };
 }
 
 /**

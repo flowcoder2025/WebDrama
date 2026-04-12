@@ -5,6 +5,7 @@ import type {
   FreepikConfig,
   TtsConfig,
   BgmConfig,
+  RemotionRenderConfig,
 } from "./types.js";
 
 const CONFIG_DIR = resolve("config");
@@ -35,17 +36,6 @@ export function loadTtsConfig(): TtsConfig {
 
 export function loadBgmConfig(): BgmConfig {
   return loadConfig<BgmConfig>("bgm.json");
-}
-
-export interface RemotionRenderConfig {
-  gl: string;
-  concurrency: number;
-  codec: string;
-  pixelFormat: string;
-  crf: number;
-  audioBitrate: string;
-  shorts: { width: number; height: number; fps: number; maxDurationInFrames: number };
-  longform: { width: number; height: number; fps: number };
 }
 
 export function loadRemotionConfig(): RemotionRenderConfig {
