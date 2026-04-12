@@ -1,10 +1,10 @@
 {
   "teams": {
-    "frontend": ["src/app/**", "src/components/**"],
-    "backend": ["src/api/**", "src/lib/**"],
-    "qa": ["e2e/**", "tests/**"],
+    "creative": ["src/research/**", "src/story/**", "templates/**"],
+    "execution": ["src/asset/**", "src/editor/**", "projects/**/assets/**", "projects/**/output/**"],
+    "qa": ["src/evaluator/**", "tests/**"],
     "devops": [".github/**", ".claude/**", ".flowset/**"],
-    "planning": ["docs/**", "wireframes/**"]
+    "planning": ["docs/**"]
   },
   "shared": [
     "package.json",
@@ -12,16 +12,16 @@
     "tsconfig.json",
     ".gitignore",
     "CLAUDE.md",
-    "prisma/schema.prisma"
+    "src/common/**",
+    "config/**",
+    "voices/**"
   ],
   "crossTeamReview": {
-    ".flowset/contracts/api-standard.md": ["frontend", "backend"],
-    ".flowset/contracts/data-flow.md": ["frontend", "backend", "qa"],
-    "prisma/schema.prisma": ["frontend", "backend"],
+    "projects/**/production-spec.json": ["creative", "execution", "qa"],
+    "projects/**/eval-report.json": ["creative", "qa"],
+    ".flowset/contracts/api-standard.md": ["creative", "execution"],
+    ".flowset/contracts/data-flow.md": ["creative", "execution", "qa"],
     ".flowset/requirements.md": ["all"],
-    "src/components/shared/**": ["frontend", "backend"],
-    "src/components/common/**": ["frontend", "backend"],
-    "src/lib/shared/**": ["frontend", "backend"],
-    "src/types/**": ["frontend", "backend", "qa"]
+    "src/common/types.ts": ["creative", "execution", "qa"]
   }
 }

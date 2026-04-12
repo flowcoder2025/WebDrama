@@ -3,7 +3,7 @@
 
 # 프로젝트 정보
 PROJECT_NAME="WebDrama"
-PROJECT_TYPE=""         # typescript, python, rust, go, etc. (추후 결정)
+PROJECT_TYPE="typescript"
 
 # 루프 제어
 MAX_ITERATIONS=50

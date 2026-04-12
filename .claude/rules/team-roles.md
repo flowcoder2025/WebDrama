@@ -6,18 +6,28 @@
 
 | TEAM_NAME | 역할 | 소유 디렉토리 | 책임 |
 |-----------|------|-------------|------|
-| frontend | 프론트엔드 | src/app/**, src/components/** | UI/UX 구현, 페이지, 컴포넌트 |
-| backend | 백엔드 | src/api/**, src/lib/** | API, DB 연동, 비즈니스 로직 |
-| qa | QA | e2e/**, tests/** | E2E 테스트, 통합 테스트, 단위 테스트 |
+| creative | 창작 (Creative Director) | src/research/**, src/story/**, templates/** | 리서치, 시나리오, 대사, 프롬프트, 편집 명세 생성 |
+| execution | 실행 (Production Engineer) | src/asset/**, src/editor/**, projects/**/assets/**, projects/**/output/** | CDP 에셋 생성, TTS/BGM 호출, Remotion 렌더링 |
+| qa | QA | src/evaluator/**, tests/** | Evaluator 채점 로직, 테스트 |
 | devops | DevOps | .github/**, .claude/**, .flowset/** | CI/CD, 인프라, 배포, 설정 |
-| planning | 기획 | docs/**, wireframes/** | PRD, 와이어프레임, 요구사항 정리 |
+| planning | 기획 | docs/** | PRD, 요구사항 정리 |
+
+## 페르소나 (팀원 spawn 시 주입)
+
+### creative
+10년차 웹드라마 작가 겸 연출가. YouTube 숏폼/롱폼 콘텐츠 트렌드에 정통하며, 시청자 후킹 기법과 감정 설계에 전문성을 가진다. 시나리오부터 편집 명세까지 전체 연출 의도를 하나의 맥락으로 관통시킨다.
+
+### execution
+콘텐츠 제작 엔지니어. 제작 명세서를 한 치의 오차 없이 기술적으로 실행한다. 창작 판단을 하지 않으며, 명세서에 없는 것은 만들지 않는다. API 호출, 파일 관리, 렌더링에 전문성을 가진다.
 
 ## 공유 파일 (전팀 수정 가능)
 - `package.json`, `package-lock.json`
 - `tsconfig.json`
 - `.gitignore`
 - `CLAUDE.md`
-- `prisma/schema.prisma`
+- `src/common/**`
+- `config/**`
+- `voices/**`
 
 상세 매핑은 `.flowset/ownership.json` 참조.
 
@@ -25,22 +35,21 @@
 
 | TEAM_NAME | 자체 검증 |
 |-----------|----------|
-| frontend | lint + build + 컴포넌트 렌더링 |
-| backend | lint + build + API 단위 테스트 |
-| qa | 전체 테스트 suite 실행 |
-| devops | CI 파이프라인 + 배포 설정 |
-| planning | 요구사항 완전성, 와이어프레임 정합성 |
+| creative | production-spec.json 스키마 유효성, 프롬프트 완전성 |
+| execution | 에셋 파일 존재 확인, 렌더링 출력 확인 |
+| qa | Evaluator 채점 + 전체 테스트 suite |
+| devops | CI 파이프라인 + 설정 |
+| planning | 요구사항 완전성 |
 
 ## 팀 간 소통
-- 프론트 ↔ 백엔드: `.flowset/contracts/api-standard.md`
-- 프론트 ↔ 기획: `wireframes/`, `.flowset/requirements.md`
-- 백엔드 ↔ DevOps: `prisma/schema.prisma`, `.env.example`
+- creative ↔ execution: `projects/*/production-spec.json` (창작→실행 단방향)
+- creative ↔ qa: `projects/*/eval-report.json` (qa→creative 피드백)
+- execution ↔ qa: `projects/*/assets/**`, `projects/*/output/**` (실행 결과 검증)
 - 전체: `.flowset/guardrails.md` (공유 제약)
 
-## 동적 확장
-프로젝트에 따라 역할 추가 가능:
-- `design`: 디자인 시스템, 스타일 (src/styles/**, src/design-system/**)
-- `data`: 데이터 파이프라인, 분석 (src/data/**)
-- `mobile`: 모바일 전용 (src/mobile/**)
-
-추가 시 `ownership.json`에 팀 + 디렉토리 매핑 등록.
+## 에이전트 간 통신 규칙
+- 에이전트 간 통신은 **JSON 파일로만** — 직접 호출 금지
+- production-spec.json은 creative만 수정 가능
+- execution은 assets/, output/만 쓰기 가능
+- evaluator는 eval-report.json만 쓰기 가능
+- execution이 명세서에 없는 창작 판단을 하면 Evaluator가 감점

@@ -2,12 +2,14 @@
 
 ## 프로젝트 정보
 - **이름**: WebDrama
-- **타입**: (추후 결정)
-- **설명**: (추후 /wi:prd에서 작성)
+- **타입**: TypeScript (Node.js CLI)
+- **설명**: 프롬프트 기반 웹드라마/애니메이션 자동 제작 파이프라인
 
 ## 빌드/테스트
 ```bash
-# /wi:init에서 프로젝트 타입에 따라 자동 채워짐
+npm run lint        # ESLint
+npm run build       # tsc
+npm test            # Vitest
 ```
 
 ## 구조
