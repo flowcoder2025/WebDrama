@@ -273,7 +273,7 @@ export async function executeImageGeneration(state: PipelineState): Promise<Pipe
 
   for (const scene of state.productionSpec.scenes) {
     const prompt = injectCharacterConsistency(scene.imagePrompt, seedStore, scene.dialogues[0]?.characterId ?? "");
-    const buffer = await generateImage(page, prompt);
+    const { buffer } = await generateImage(page, prompt);
     await saveImage(buffer, resolve(state.assetsDir, "images", `${scene.id}.png`));
   }
 
