@@ -2,23 +2,17 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
- * WI-020: 캐릭터 시드 관리자
- * 동일 캐릭터의 외형 일관성을 위해 프롬프트 프리픽스 + 시드 관리
+ * @deprecated WI-043에서 character-ref.ts의 RefStore로 대체됨
+ * 기존 프로젝트 호환을 위해 유지
  */
 
-interface CharacterSeed {
-  characterId: string;
-  promptPrefix: string;
-  negativePrompt: string;
-  lastUsedSeed: number | null;
-}
-
 interface SeedStore {
-  characters: Record<string, CharacterSeed>;
+  characters: Record<string, { characterId: string; promptPrefix: string; negativePrompt: string; lastUsedSeed: number | null }>;
 }
 
 const SEED_FILE = "character-seeds.json";
 
+/** @deprecated loadRefStore() 사용 권장 */
 export function loadSeedStore(projectDir: string): SeedStore {
   const filepath = resolve(projectDir, SEED_FILE);
   if (!existsSync(filepath)) {
@@ -28,46 +22,10 @@ export function loadSeedStore(projectDir: string): SeedStore {
   return JSON.parse(raw) as SeedStore;
 }
 
+/** @deprecated saveRefStore() 사용 권장 */
 export function saveSeedStore(projectDir: string, store: SeedStore): void {
   const filepath = resolve(projectDir, SEED_FILE);
   writeFileSync(filepath, JSON.stringify(store, null, 2), "utf-8");
-}
-
-export function getCharacterPromptPrefix(store: SeedStore, characterId: string): string {
-  return store.characters[characterId]?.promptPrefix ?? "";
-}
-
-export function updateCharacterSeed(
-  store: SeedStore,
-  characterId: string,
-  promptPrefix: string,
-  negativePrompt: string,
-  seed: number | null,
-): SeedStore {
-  return {
-    characters: {
-      ...store.characters,
-      [characterId]: {
-        characterId,
-        promptPrefix,
-        negativePrompt,
-        lastUsedSeed: seed,
-      },
-    },
-  };
-}
-
-/**
- * 캐릭터 프롬프트에 일관성 프리픽스를 주입
- */
-export function injectCharacterConsistency(
-  basePrompt: string,
-  store: SeedStore,
-  characterId: string,
-): string {
-  const prefix = getCharacterPromptPrefix(store, characterId);
-  if (!prefix) return basePrompt;
-  return `${prefix}, ${basePrompt}`;
 }
 
 /**
