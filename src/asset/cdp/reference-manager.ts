@@ -2,53 +2,64 @@ import type { Page } from "puppeteer";
 import { log } from "../../common/logger.js";
 
 /**
- * Freepik References 시스템 — Add 카드 경유 등록
+ * Freepik References 시스템 — Add 카드 경유 등록 (무료)
  *
- * DOM 구조 (2026-04 기준):
+ * CDP 실측 기반 (2026-04-13):
+ *
+ * [DOM 구조]
  *   [class*="group/references"]
  *     └ [class*="grid"]
- *         ├ children[0]: "Character" 카드 (캐릭터 전용 — 사용 안 함)
- *         └ children[1]: "Add" 카드 (범용 Reference 추가 — 이걸 클릭)
+ *         ├ children[0]: "Character" 카드 (유료 — 사용 안 함)
+ *         └ children[1]: "Add" 카드 (무료 — 이걸 클릭)
  *
- * 모달 좌측: History | Uploads | Favorites | Stock (button)
- * 모달 내 이미지: img[src*="pikaso"] (History 탭)
- * 등록 카운터: "0/14" → "1/14" 변경으로 등록 성공 확인
+ * [등록 흐름]
+ *   1. Add 카드 클릭 → 모달 열림 (History 탭 기본 선택)
+ *   2. History에서 이미지 button.aspect-square 클릭 → 파란 테두리 + 체크
+ *   3. 모달 하단 "Add" 버튼 클릭 (page.mouse.click 필수 — evaluate click 미동작)
+ *   4. 모달 닫힘 → 카운터 0/14 → 1/14, 카드 "@img1" 생성
+ *
+ * [멘션 흐름]
+ *   1. contenteditable에 "@" 타이핑 → 드롭다운에 "img1" 버튼 표시
+ *   2. 드롭다운 "img1" 클릭 (page.mouse.click 필수)
+ *   3. 멘션 토큰 삽입: <span data-key="img1" data-type="reference">@img1</span>
+ *
+ * [이름 규칙]
+ *   등록 순서대로 img1, img2, img3, ... (image#N이 아닌 imgN)
  */
 
 /**
  * Add 카드를 클릭하여 Reference 선택 모달 열기
  */
 async function openAddModal(page: Page): Promise<void> {
-  const clicked = await page.evaluate(() => {
+  const addCardPos = await page.evaluate(() => {
     const allEls = [...document.querySelectorAll("*")];
     const refLabel = allEls.find(
       el => el.textContent?.trim() === "References" && el.children.length === 0,
     );
-    if (!refLabel) return false;
+    if (!refLabel) return null;
 
     const refContainer = refLabel.closest('[class*="group/references"]');
-    if (!refContainer) return false;
+    if (!refContainer) return null;
 
     const grid = refContainer.querySelector('[class*="grid"]');
-    if (!grid || !grid.children[1]) return false;
+    if (!grid || !grid.children[1]) return null;
 
-    // Add 카드 (grid.children[1]) 내 cursor-pointer 요소 클릭
-    const addCard = grid.children[1];
-    const clickTarget =
-      addCard.querySelector('[class*="cursor-pointer"]') ?? addCard;
-    (clickTarget as HTMLElement).click();
-    return true;
+    const addCard = grid.children[1] as HTMLElement;
+    const rect = addCard.getBoundingClientRect();
+    return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
   });
 
-  if (!clicked) {
+  if (!addCardPos) {
     throw new Error("References Add 카드를 찾을 수 없음");
   }
 
-  // 모달 열림 대기 — History 탭 텍스트가 나타날 때까지
+  await page.mouse.click(addCardPos.x, addCardPos.y);
+
+  // 모달 열림 대기 — History H3가 나타날 때까지
   await page.waitForFunction(
     () => {
-      const btns = [...document.querySelectorAll("button")];
-      return btns.some(b => b.textContent?.trim() === "History");
+      const els = [...document.querySelectorAll("h3")];
+      return els.some(el => el.textContent?.trim() === "History");
     },
     { timeout: 10000 },
   );
@@ -57,61 +68,74 @@ async function openAddModal(page: Page): Promise<void> {
 }
 
 /**
- * 모달 내 History 탭 선택
- */
-async function selectHistoryTab(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    const btns = [...document.querySelectorAll("button")];
-    const historyBtn = btns.find(b => b.textContent?.trim() === "History");
-    if (historyBtn) (historyBtn as HTMLElement).click();
-  });
-  await new Promise(r => setTimeout(r, 1000));
-  log("info", "History 탭 선택");
-}
-
-/**
- * History에서 이미지 선택 (가장 최근 = 첫 번째 pikaso 이미지)
+ * History에서 첫 번째 이미지 선택 (button.aspect-square 클릭)
  * 이미지 생성 직후 호출 보장 → History 첫 번째 = 방금 생성한 이미지
  */
 async function selectFirstHistoryImage(page: Page): Promise<boolean> {
-  const selected = await page.evaluate(() => {
-    const imgs = [...document.querySelectorAll("img")];
-    const pikasoImgs = imgs.filter(
-      img => img.src.includes("pikaso") && img.offsetWidth > 100,
+  // History 이미지 버튼의 좌표를 가져와서 mouse.click으로 클릭
+  const imgPos = await page.evaluate(() => {
+    // History H3를 기준으로 스크롤 영역 내 이미지 버튼 찾기
+    const btns = [...document.querySelectorAll("button")];
+    const imgBtn = btns.find(b =>
+      b.classList.contains("aspect-square") &&
+      b.querySelector("img[src*='pikaso']"),
     );
-    if (pikasoImgs.length === 0) return false;
-    pikasoImgs[0].click();
-    return true;
+    if (!imgBtn) return null;
+    const rect = imgBtn.getBoundingClientRect();
+    return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
   });
 
-  if (!selected) {
-    log("warn", "History에 pikaso 이미지 없음");
+  if (!imgPos) {
+    log("warn", "History에 pikaso 이미지 버튼 없음");
     return false;
   }
 
+  await page.mouse.click(imgPos.x, imgPos.y);
   await new Promise(r => setTimeout(r, 500));
 
-  // 선택 확인 — selected 클래스 또는 체크마크 존재
-  const hasSelection = await page.evaluate(() => {
-    return document.querySelectorAll('[class*="selected"], [aria-selected="true"]').length > 0;
+  // 선택 확인 — 하단에 "Add" 버튼 + "Clear all" 버튼이 나타나는지
+  const hasAddBtn = await page.evaluate(() => {
+    const btns = [...document.querySelectorAll("button")];
+    return btns.some(b => b.textContent?.trim() === "Add" && b.offsetWidth > 40);
   });
-  if (!hasSelection) {
-    log("warn", "이미지 클릭했으나 selected 상태 미확인 — 재클릭 시도");
-    await page.evaluate(() => {
-      const imgs = [...document.querySelectorAll("img")];
-      const pikasoImgs = imgs.filter(
-        img => img.src.includes("pikaso") && img.offsetWidth > 100,
-      );
-      if (pikasoImgs.length > 0) pikasoImgs[0].click();
-    });
+
+  if (!hasAddBtn) {
+    log("warn", "이미지 클릭했으나 Add 버튼 미표시 — 재클릭");
+    await page.mouse.click(imgPos.x, imgPos.y);
     await new Promise(r => setTimeout(r, 500));
   }
-  log("info", "이미지 선택 완료");
+
+  log("info", "History 이미지 선택 완료");
   return true;
 }
 
 /**
- * Reference 등록 확인 — 카운터 변화로 성공 검증
+ * 모달 하단 "Add" 버튼 클릭 (page.mouse.click 필수)
+ */
+async function clickModalAddButton(page: Page): Promise<boolean> {
+  const addBtnPos = await page.evaluate(() => {
+    const btns = [...document.querySelectorAll("button")];
+    const addBtn = btns.find(b =>
+      b.textContent?.trim() === "Add" && b.offsetWidth > 40,
+    );
+    if (!addBtn) return null;
+    const rect = addBtn.getBoundingClientRect();
+    return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
+  });
+
+  if (!addBtnPos) {
+    log("warn", "모달 Add 버튼 미발견");
+    return false;
+  }
+
+  await page.mouse.click(addBtnPos.x, addBtnPos.y);
+  await new Promise(r => setTimeout(r, 1500));
+  log("info", "모달 Add 버튼 클릭");
+  return true;
+}
+
+/**
+ * Reference 등록 카운터 읽기
  */
 async function getRefCount(page: Page): Promise<number> {
   return page.evaluate(() => {
@@ -128,126 +152,128 @@ async function getRefCount(page: Page): Promise<number> {
 }
 
 /**
- * 이미지를 Freepik Reference로 등록
- *
- * 흐름: Add 카드 클릭 → 모달 → History 탭 → 이미지 선택 → 등록 완료
- * 생성 직후 호출 → 단일 CDP 세션이므로 History 첫 번째 = 방금 생성한 이미지
+ * 등록된 Reference 이름 목록 추출 (img1, img2, ...)
  */
-export async function registerAsReference(page: Page, _imageUrl: string): Promise<string> {
-  const beforeCount = await getRefCount(page);
-  log("info", `Reference 등록 시작 (현재 ${beforeCount}개)`);
-
-  // 1. Add 모달 열기
-  await openAddModal(page);
-
-  // 2. History 탭 선택
-  await selectHistoryTab(page);
-
-  // 3. 첫 번째 이미지 선택
-  const imageSelected = await selectFirstHistoryImage(page);
-  if (!imageSelected) {
-    // ESC로 모달 닫고 실패 반환
-    await page.keyboard.press("Escape");
-    throw new Error("Reference 등록 실패: History에 이미지 없음");
-  }
-
-  // 4. 자동 등록 확인 → 안 되면 Add 확인 버튼 클릭 시도
-  await new Promise(r => setTimeout(r, 1000));
-
-  let currentCount = await getRefCount(page);
-  if (currentCount > beforeCount) {
-    log("info", `Reference 자동 등록 완료 (${beforeCount} → ${currentCount})`);
-  } else {
-    // Add/확인 버튼 탐색 + 클릭
-    const confirmClicked = await page.evaluate(() => {
-      const btns = [...document.querySelectorAll("button")];
-      const confirm = btns.find(b => {
-        const text = b.textContent?.trim().toLowerCase() ?? "";
-        return (text === "add" || text === "apply" || text === "confirm" || text === "done")
-          && b.offsetWidth > 40;
-      });
-      if (confirm) {
-        (confirm as HTMLElement).click();
-        return true;
-      }
-      return false;
-    });
-
-    if (confirmClicked) {
-      log("info", "Add 확인 버튼 클릭");
-      await new Promise(r => setTimeout(r, 1500));
-    } else {
-      log("warn", "Add 확인 버튼 미발견 — ESC로 모달 닫기 시도");
-      await page.keyboard.press("Escape");
-      await new Promise(r => setTimeout(r, 500));
-    }
-
-    currentCount = await getRefCount(page);
-    if (currentCount <= beforeCount) {
-      throw new Error(`Reference 등록 실패: 카운터 변화 없음 (${beforeCount} → ${currentCount})`);
-    }
-    log("info", `Reference 등록 완료 (${beforeCount} → ${currentCount})`);
-  }
-
-  // 등록된 Reference 이름 반환
-  const refName = await page.evaluate(() => {
+async function getRegisteredRefNames(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
     const allEls = [...document.querySelectorAll("*")];
     const refLabel = allEls.find(
       el => el.textContent?.trim() === "References" && el.children.length === 0,
     );
     const container = refLabel?.closest('[class*="group/references"]');
     const grid = container?.querySelector('[class*="grid"]');
-    if (!grid) return "Reference";
-    // 새로 등록된 카드 = Character/Add 외의 카드
-    const cards = [...grid.children];
-    for (const card of cards) {
-      const text = card.textContent?.trim() ?? "";
-      if (text !== "Character" && text !== "Add" && text.length > 0) {
-        return text;
+    if (!grid) return [];
+
+    const names: string[] = [];
+    for (const card of [...grid.children]) {
+      // @imgN 형태의 SPAN 찾기
+      const nameSpan = card.querySelector("span.truncate");
+      const text = nameSpan?.textContent?.trim() ?? card.textContent?.trim() ?? "";
+      if (text.startsWith("@img")) {
+        names.push(text.replace("@", ""));
       }
     }
-    return "Reference";
+    return names;
   });
-
-  log("info", `등록된 Reference: "${refName}"`);
-  return refName;
 }
 
 /**
- * 프롬프트에 @레퍼런스 멘션 삽입
- * contenteditable 영역에서 @ 입력 후 레퍼런스 선택
- * 이 함수 호출 후 page.keyboard.type(prompt) 으로 나머지 프롬프트 입력
+ * 이미지를 Freepik Reference로 등록 (Add 카드 경유, 무료)
+ *
+ * 흐름: Add 카드 클릭 → 모달 → History → 이미지 선택 → Add 확인
+ * 반환: 등록된 Reference 이름 (예: "img1")
  */
-export async function insertReferenceMention(page: Page, referenceName: string): Promise<void> {
-  // 1. @ 문자 타이핑 → 멘션 드롭다운 트리거
+export async function registerAsReference(page: Page): Promise<string> {
+  const beforeCount = await getRefCount(page);
+  const beforeNames = await getRegisteredRefNames(page);
+  log("info", `Reference 등록 시작 (현재 ${beforeCount}개: [${beforeNames.join(", ")}])`);
+
+  // 1. Add 모달 열기
+  await openAddModal(page);
+
+  // 2. 첫 번째 History 이미지 선택
+  const imageSelected = await selectFirstHistoryImage(page);
+  if (!imageSelected) {
+    await page.keyboard.press("Escape");
+    throw new Error("Reference 등록 실패: History에 이미지 없음");
+  }
+
+  // 3. 모달 Add 버튼 클릭
+  const addClicked = await clickModalAddButton(page);
+  if (!addClicked) {
+    await page.keyboard.press("Escape");
+    throw new Error("Reference 등록 실패: 모달 Add 버튼 미발견");
+  }
+
+  // 4. 카운터 검증
+  const afterCount = await getRefCount(page);
+  if (afterCount <= beforeCount) {
+    throw new Error(`Reference 등록 실패: 카운터 변화 없음 (${beforeCount} → ${afterCount})`);
+  }
+
+  // 5. 새로 등록된 이름 추출
+  const afterNames = await getRegisteredRefNames(page);
+  const newName = afterNames.find(n => !beforeNames.includes(n)) ?? `img${afterCount}`;
+
+  log("info", `Reference 등록 완료: ${newName} (${beforeCount} → ${afterCount})`);
+  return newName;
+}
+
+/**
+ * 프롬프트에 @멘션 삽입
+ *
+ * "@" 타이핑 → 드롭다운에 "imgN" 표시 → mouse.click으로 선택
+ * 멘션 토큰: <span data-key="imgN" data-type="reference">@imgN</span>
+ */
+export async function insertReferenceMention(page: Page, refName: string): Promise<void> {
+  // 1. @ 타이핑 → 드롭다운 트리거
   await page.keyboard.type("@");
-  await new Promise(r => setTimeout(r, 500));
+  await new Promise(r => setTimeout(r, 800));
 
-  // 2. 멘션 드롭다운에서 referenceName 매칭 항목 클릭
-  const clicked = await page.evaluate((name: string) => {
-    const items = [...document.querySelectorAll(
-      '[class*="dropdown"] li, [class*="mention"] li, [class*="popup"] li, [role="option"], [role="listbox"] li',
-    )];
-    const match = items.find(el => el.textContent?.trim().includes(name));
+  // 2. 드롭다운에서 refName 매칭 버튼의 좌표를 가져와 mouse.click
+  const itemPos = await page.evaluate((name: string) => {
+    // 드롭다운: border-surface-2 bg-surface-modal 클래스의 팝업 내 버튼
+    const btns = [...document.querySelectorAll("button")];
+    const match = btns.find(b => {
+      const text = b.textContent?.trim() ?? "";
+      return text === name && b.offsetWidth > 0 && b.offsetHeight > 0;
+    });
     if (match) {
-      (match as HTMLElement).click();
-      return true;
+      const rect = match.getBoundingClientRect();
+      return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
     }
-    // 폴백: 첫 번째 선택 가능 항목
-    const allClickable = [...document.querySelectorAll("li, [role='option']")];
-    if (allClickable.length > 0) {
-      (allClickable[0] as HTMLElement).click();
-      return true;
-    }
-    return false;
-  }, referenceName);
 
-  if (clicked) {
+    // 폴백: span.truncate에서 찾기
+    const spans = [...document.querySelectorAll("span.truncate")];
+    const spanMatch = spans.find(s => s.textContent?.trim() === name && (s as HTMLElement).offsetWidth > 0);
+    if (spanMatch) {
+      const rect = spanMatch.getBoundingClientRect();
+      return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
+    }
+
+    return null;
+  }, refName);
+
+  if (itemPos) {
+    await page.mouse.click(itemPos.x, itemPos.y);
     await new Promise(r => setTimeout(r, 300));
-    await page.keyboard.type(" ");
-    log("info", `@${referenceName} 멘션 삽입 완료`);
+
+    // 멘션 토큰 삽입 확인
+    const hasMention = await page.evaluate((name: string) => {
+      const editor = document.querySelector("[contenteditable]");
+      return editor?.innerHTML?.includes(`data-key="${name}"`) ?? false;
+    }, refName);
+
+    if (hasMention) {
+      await page.keyboard.type(" ");
+      log("info", `@${refName} 멘션 삽입 완료 (토큰 확인)`);
+    } else {
+      log("warn", `@${refName} 클릭했으나 멘션 토큰 미확인`);
+      await page.keyboard.type(" ");
+    }
   } else {
-    log("warn", `멘션 드롭다운에서 ${referenceName}을 찾을 수 없음 — @${referenceName} 텍스트로 삽입`);
-    await page.keyboard.type(`${referenceName} `);
+    // 드롭다운 미발견 → 평문 삽입은 Reference 기능 무효화이므로 throw
+    await page.keyboard.press("Backspace"); // @ 문자 제거
+    throw new Error(`멘션 삽입 실패: 드롭다운에서 ${refName}을 찾을 수 없음`);
   }
 }
