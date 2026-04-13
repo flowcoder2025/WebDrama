@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
-import type { CharacterReference, RefStore } from "../../common/types.js";
+import type { RefStore } from "../../common/types.js";
 
 const REF_FILE = "character-refs.json";
 
