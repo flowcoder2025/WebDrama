@@ -34,19 +34,20 @@ export async function saveVideo(buffer: Buffer, outputPath: string): Promise<str
  * 1080p 이상은 유료이므로 절대 사용 금지
  */
 async function ensureVideoResolution(page: Page, target: string): Promise<void> {
+  // 영상 해상도는 "720" (p 없음) 형태로 표시됨
   const current = await page.evaluate(() => {
     const btns = [...document.querySelectorAll("button, span")];
-    const resEl = btns.find(el => /\d+p/.test(el.textContent?.trim() ?? ""));
+    const resEl = btns.find(el => /^\d{3,4}p?$/.test(el.textContent?.trim() ?? ""));
     return resEl?.textContent?.trim() ?? null;
   });
 
-  if (current && current.includes(target)) {
+  if (current && current.startsWith(target)) {
     log("info", `영상 해상도 이미 ${target} 설정됨`);
     return;
   }
 
-  if (current && (current.includes("1080p") || current.includes("4K"))) {
-    log("warn", `유료 해상도 감지 (${current}) — 강제 720p 변경`);
+  if (current && (/^1080/.test(current) || current.includes("4K"))) {
+    log("warn", `유료 해상도 감지 (${current}) — 강제 ${target} 변경`);
   }
 
   const changed = await page.evaluate((t: string) => {
