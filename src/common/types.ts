@@ -287,3 +287,18 @@ export interface RemotionRenderConfig {
   shorts: { width: number; height: number; fps: number; maxDurationInFrames: number };
   longform: { width: number; height: number; fps: number };
 }
+
+// ============================================================
+// Freepik Reference 시스템 (캐릭터 일관성)
+// ============================================================
+
+export interface CharacterReference {
+  characterId: string;
+  referenceImageUrl: string;
+  referenceName: string;
+  registeredAt: string;
+}
+
+export interface RefStore {
+  characters: Record<string, CharacterReference>;
+}

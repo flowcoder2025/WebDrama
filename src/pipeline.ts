@@ -17,7 +17,7 @@ import { assembleProductionSpec, validateProductionSpec } from "./story/prompt-b
 import { getFreepikImagePage, getFreepikVideoPage } from "./asset/cdp/browser.js";
 import { generateImage, saveImage } from "./asset/cdp/image-gen.js";
 import { generateVideo, saveVideo } from "./asset/cdp/video-gen.js";
-import { loadSeedStore, saveSeedStore, injectCharacterConsistency, adaptMotionPrompt } from "./asset/cdp/character-seed.js";
+import { loadSeedStore, saveSeedStore, adaptMotionPrompt } from "./asset/cdp/character-seed.js";
 import "./asset/tts/engine.js";
 import { generateSceneVoices } from "./asset/tts/narration.js";
 import { generateBgm, saveBgm } from "./asset/bgm/ace-step.js";
@@ -272,7 +272,7 @@ export async function executeImageGeneration(state: PipelineState): Promise<Pipe
   const seedStore = loadSeedStore(state.projectDir);
 
   for (const scene of state.productionSpec.scenes) {
-    const prompt = injectCharacterConsistency(scene.imagePrompt, seedStore, scene.dialogues[0]?.characterId ?? "");
+    const prompt = scene.imagePrompt;
     const { buffer } = await generateImage(page, prompt);
     await saveImage(buffer, resolve(state.assetsDir, "images", `${scene.id}.png`));
   }
