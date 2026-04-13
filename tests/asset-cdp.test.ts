@@ -90,3 +90,27 @@ describe("모션 프롬프트 어댑터", () => {
     expect(result).toContain("smooth motion");
   });
 });
+
+describe("extractProductionId", () => {
+  it("정상 URL에서 production ID 추출", async () => {
+    const { extractProductionId } = await import("../src/asset/cdp/reference-manager.js");
+    expect(extractProductionId("https://pikaso.cdnpk.net/private/production/3934176321/render.png?token=abc"))
+      .toBe("3934176321");
+  });
+
+  it("preview 파라미터 있는 URL", async () => {
+    const { extractProductionId } = await import("../src/asset/cdp/reference-manager.js");
+    expect(extractProductionId("https://pikaso.cdnpk.net/private/production/1234567890/render.png?token=x&preview=1"))
+      .toBe("1234567890");
+  });
+
+  it("production 없는 URL → throw", async () => {
+    const { extractProductionId } = await import("../src/asset/cdp/reference-manager.js");
+    expect(() => extractProductionId("https://example.com/image.png")).toThrow("production ID 추출 실패");
+  });
+
+  it("빈 문자열 → throw", async () => {
+    const { extractProductionId } = await import("../src/asset/cdp/reference-manager.js");
+    expect(() => extractProductionId("")).toThrow("production ID 추출 실패");
+  });
+});
