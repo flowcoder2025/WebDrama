@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { ProductionSpec, Character, ResearchReport } from "./common/types.js";
-import { loadProjectConfig } from "./common/config.js";
+import { loadProjectConfig, loadFreepikConfig } from "./common/config.js";
 import { log } from "./common/logger.js";
 import { buildResearchFromResponses, saveResearchReport } from "./research/pipeline.js";
 import {
@@ -14,10 +14,12 @@ import {
 import { scenarioPrompt, parseScenarioResponse, extractAllScenes, validateHooking } from "./story/scenario.js";
 import { dialoguePrompt, narrationPrompt, parseDialogueResponse } from "./story/dialogue.js";
 import { assembleProductionSpec, validateProductionSpec } from "./story/prompt-builder.js";
-import { getFreepikImagePage, getFreepikVideoPage } from "./asset/cdp/browser.js";
-import { generateImage, saveImage } from "./asset/cdp/image-gen.js";
+import { getFreepikImagePage, getFreepikVideoPage, getVideoPageViaCreateButton, openImageDetail, startImageViaGallery } from "./asset/cdp/browser.js";
+import { generateImage, saveImage, ensureResolution, ensureAiPromptOff } from "./asset/cdp/image-gen.js";
 import { generateVideo, saveVideo } from "./asset/cdp/video-gen.js";
-import { loadSeedStore, saveSeedStore, adaptMotionPrompt } from "./asset/cdp/character-seed.js";
+import { loadRefStore, saveRefStore, updateCharacterReference, hasReference, getReferenceName } from "./asset/cdp/character-ref.js";
+import { registerAsReference, insertReferenceMention } from "./asset/cdp/reference-manager.js";
+import { adaptMotionPrompt } from "./asset/cdp/character-seed.js";
 import "./asset/tts/engine.js";
 import { generateSceneVoices } from "./asset/tts/narration.js";
 import { generateBgm, saveBgm } from "./asset/bgm/ace-step.js";
@@ -59,6 +61,7 @@ export interface PipelineState {
   scenarioResponse: string | null;
   productionSpec: ProductionSpec | null;
   outputPath: string | null;
+  imageUrls: Record<string, string>;
   evalAttempt: number;
 }
 
@@ -89,6 +92,7 @@ export function initProjectDir(projectName: string): PipelineState {
     productionSpec: null,
     outputPath: null,
     evalAttempt: 0,
+    imageUrls: {},
   };
 }
 
@@ -259,7 +263,8 @@ export function getDialoguePrompts(
 }
 
 /**
- * Phase 4: 이미지 에셋 생성 (리드 실행)
+ * Phase 4a: 이미지 에셋 생성 (리드 실행)
+ * References 시스템으로 캐릭터 일관성 유지
  */
 export async function executeImageGeneration(state: PipelineState): Promise<PipelineState> {
   log("info", "[Phase 4a] 이미지 생성");
@@ -269,20 +274,48 @@ export async function executeImageGeneration(state: PipelineState): Promise<Pipe
   }
 
   const page = await getFreepikImagePage();
-  const seedStore = loadSeedStore(state.projectDir);
+  let refStore = loadRefStore(state.projectDir);
+  const imageUrls: Record<string, string> = {};
+
+  await ensureResolution(page, loadFreepikConfig().image.resolution);
+  await ensureAiPromptOff(page);
 
   for (const scene of state.productionSpec.scenes) {
-    const prompt = scene.imagePrompt;
-    const { buffer } = await generateImage(page, prompt);
+    const characterIds = [...new Set(scene.dialogues.map(d => d.characterId))];
+    const unregisteredChars = characterIds.filter(id => id && !hasReference(refStore, id));
+    const registeredChars = characterIds.filter(id => id && hasReference(refStore, id));
+
+    const editor = await page.waitForSelector("[contenteditable]", { timeout: 10000 });
+    if (!editor) throw new Error("프롬프트 입력창을 찾을 수 없음");
+    await editor.click();
+    await page.keyboard.down("Control");
+    await page.keyboard.press("a");
+    await page.keyboard.up("Control");
+    await page.keyboard.press("Backspace");
+    await new Promise(r => setTimeout(r, 300));
+
+    for (const charId of registeredChars) {
+      await insertReferenceMention(page, getReferenceName(refStore, charId));
+    }
+    await page.keyboard.type(scene.imagePrompt, { delay: 10 });
+
+    const { buffer, imageUrl } = await generateImage(page, scene.imagePrompt, { skipPromptInput: true });
     await saveImage(buffer, resolve(state.assetsDir, "images", `${scene.id}.png`));
+    imageUrls[scene.id] = imageUrl;
+
+    for (const charId of unregisteredChars) {
+      const refName = await registerAsReference(page, imageUrl);
+      refStore = updateCharacterReference(refStore, charId, imageUrl, refName);
+    }
   }
 
-  saveSeedStore(state.projectDir, seedStore);
-  return { ...state, phase: "assets-video" };
+  saveRefStore(state.projectDir, refStore);
+  return { ...state, phase: "assets-video", imageUrls };
 }
 
 /**
  * Phase 4b: 영상 에셋 생성 (리드 실행)
+ * 이미지 상세에서 "Create video" 버튼으로 새 탭 열기
  */
 export async function executeVideoGeneration(state: PipelineState): Promise<PipelineState> {
   log("info", "[Phase 4b] 영상 생성");
@@ -291,14 +324,33 @@ export async function executeVideoGeneration(state: PipelineState): Promise<Pipe
     throw new Error("production-spec이 없음", { cause: null });
   }
 
-  const page = await getFreepikVideoPage();
+  const imagePage = await getFreepikImagePage();
 
   for (const scene of state.productionSpec.scenes) {
     if (!scene.videoPrompt) continue;
 
+    const imageUrl = state.imageUrls[scene.id];
+    if (!imageUrl) {
+      log("warn", `이미지 URL 없음, 영상 생성 스킵: ${scene.id}`);
+      continue;
+    }
+
+    await openImageDetail(imagePage, imageUrl);
+
+    let videoPage: import("puppeteer").Page;
+    try {
+      videoPage = await getVideoPageViaCreateButton(imagePage);
+    } catch {
+      log("warn", "Create video 버튼 실패 — 폴백: 갤러리 모달 경유");
+      videoPage = await getFreepikVideoPage();
+      await startImageViaGallery(videoPage, imageUrl);
+    }
+
     const motionPrompt = adaptMotionPrompt(scene.videoPrompt);
-    const buffer = await generateVideo(page, motionPrompt);
+    const buffer = await generateVideo(videoPage, motionPrompt);
     await saveVideo(buffer, resolve(state.assetsDir, "videos", `${scene.id}.mp4`));
+
+    await videoPage.close();
   }
 
   return { ...state, phase: "assets-voice" };

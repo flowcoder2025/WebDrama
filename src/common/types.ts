@@ -270,7 +270,6 @@ export interface FreepikVideoConfig {
   height: number;
   duration: number;
   timeout: number;
-  uploadSelector: string;
 }
 
 // ============================================================
