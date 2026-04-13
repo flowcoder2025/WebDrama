@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { ProductionSpec, Character, ResearchReport } from "./common/types.js";
 import { loadProjectConfig } from "./common/config.js";
@@ -296,14 +296,8 @@ export async function executeVideoGeneration(state: PipelineState): Promise<Pipe
   for (const scene of state.productionSpec.scenes) {
     if (!scene.videoPrompt) continue;
 
-    const imagePath = resolve(state.assetsDir, "images", `${scene.id}.png`);
-    if (!existsSync(imagePath)) {
-      log("warn", `이미지 없음, 영상 생성 스킵: ${scene.id}`);
-      continue;
-    }
-
     const motionPrompt = adaptMotionPrompt(scene.videoPrompt);
-    const buffer = await generateVideo(page, imagePath, motionPrompt);
+    const buffer = await generateVideo(page, motionPrompt);
     await saveVideo(buffer, resolve(state.assetsDir, "videos", `${scene.id}.mp4`));
   }
 

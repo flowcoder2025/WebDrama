@@ -6,19 +6,19 @@ import { log } from "../../common/logger.js";
 import { downloadViaXhr } from "./download.js";
 
 /**
- * WI-021: Freepik 영상 생성기
- * 이미지를 업로드하고 영상으로 변환
+ * WI-021 + WI-043: Freepik 영상 생성기
+ * "Create video" 버튼으로 열린 새 탭에서 영상 생성
+ * Start Image는 자동 삽입되므로 별도 업로드 불필요
  */
-export async function generateVideo(page: Page, imagePath: string, prompt: string): Promise<Buffer> {
+export async function generateVideo(videoPage: Page, prompt: string): Promise<Buffer> {
   const config = loadFreepikConfig();
 
-  await navigateToImageToVideo(page);
-  await uploadImage(page, imagePath);
-  await inputVideoPrompt(page, prompt);
-  await clickGenerate(page);
-  await waitForVideoResult(page, config.video.timeout);
-  const videoUrl = await extractVideo(page);
-  return downloadViaXhr(page, videoUrl);
+  await ensureVideoResolution(videoPage, config.video.resolution);
+  await inputVideoPrompt(videoPage, prompt);
+  await clickGenerate(videoPage);
+  await waitForVideoResult(videoPage, config.video.timeout);
+  const videoUrl = await extractVideo(videoPage);
+  return downloadViaXhr(videoPage, videoUrl);
 }
 
 export async function saveVideo(buffer: Buffer, outputPath: string): Promise<string> {
@@ -29,24 +29,42 @@ export async function saveVideo(buffer: Buffer, outputPath: string): Promise<str
   return fullPath;
 }
 
-async function navigateToImageToVideo(page: Page): Promise<void> {
-  // Image to Video 모드 확인 — 이미 영상 탭이면 업로드 영역 존재
-  const hasFileInput = await page.$("input[type=file]");
-  if (hasFileInput) {
-    log("info", "Image to Video 모드 확인됨");
+/**
+ * 영상 해상도 확인 — 720p 보장
+ * 1080p 이상은 유료이므로 절대 사용 금지
+ */
+async function ensureVideoResolution(page: Page, target: string): Promise<void> {
+  const current = await page.evaluate(() => {
+    const btns = [...document.querySelectorAll("button, span")];
+    const resEl = btns.find(el => /\d+p/.test(el.textContent?.trim() ?? ""));
+    return resEl?.textContent?.trim() ?? null;
+  });
+
+  if (current && current.includes(target)) {
+    log("info", `영상 해상도 이미 ${target} 설정됨`);
     return;
   }
-  log("warn", "file input 없음 — 페이지 새로고침 시도");
-  await page.reload({ waitUntil: "networkidle2" });
-  await page.waitForSelector("input[type=file]", { timeout: 15000 });
-}
 
-async function uploadImage(page: Page, imagePath: string): Promise<void> {
-  const input = await page.waitForSelector("input[type=file]", { timeout: 10000 });
-  if (!input) throw new Error("파일 업로드 입력을 찾을 수 없음");
-  await (input as unknown as { uploadFile: (path: string) => Promise<void> }).uploadFile(resolve(imagePath));
-  log("info", `이미지 업로드: ${imagePath}`);
-  await new Promise(r => setTimeout(r, 3000));
+  if (current && (current.includes("1080p") || current.includes("4K"))) {
+    log("warn", `유료 해상도 감지 (${current}) — 강제 720p 변경`);
+  }
+
+  const changed = await page.evaluate((t: string) => {
+    const els = [...document.querySelectorAll("button, span")];
+    const targetEl = els.find(el => el.textContent?.trim().includes(t));
+    if (targetEl) {
+      (targetEl as HTMLElement).click();
+      return true;
+    }
+    return false;
+  }, target);
+
+  if (changed) {
+    await new Promise(r => setTimeout(r, 500));
+    log("info", `영상 해상도 ${target}로 설정`);
+  } else {
+    log("warn", `영상 해상도 ${target} 버튼 미발견 — 현재 설정 유지`);
+  }
 }
 
 async function inputVideoPrompt(page: Page, prompt: string): Promise<void> {
@@ -118,4 +136,3 @@ async function extractVideo(page: Page): Promise<string> {
   if (!url) throw new Error("생성된 영상을 찾을 수 없음");
   return url;
 }
-
