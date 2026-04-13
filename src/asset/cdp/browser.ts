@@ -42,6 +42,7 @@ export async function getFreepikImagePage(): Promise<Page> {
   return newPage;
 }
 
+/** @deprecated getVideoPageViaCreateButton() 사용 권장. 폴백 경로에서만 사용. */
 export async function getFreepikVideoPage(): Promise<Page> {
   const b = await connectBrowser();
   const pages = await b.pages();
@@ -138,11 +139,19 @@ export async function openImageDetail(page: Page, imageUrl: string): Promise<voi
 
   if (!clicked) {
     log("warn", "갤러리에서 이미지 매칭 실패 — pikaso 이미지 중 최신 클릭 시도");
-    await page.evaluate(() => {
+    const fallbackClicked = await page.evaluate(() => {
       const imgs = [...document.querySelectorAll("img")];
       const pikaso = imgs.find(img => img.src.includes("pikaso"));
-      if (pikaso) pikaso.click();
+      if (pikaso) {
+        pikaso.click();
+        return true;
+      }
+      return false;
     });
+
+    if (!fallbackClicked) {
+      throw new Error("갤러리에서 이미지를 찾을 수 없음");
+    }
   }
 
   await new Promise(r => setTimeout(r, 1500));
