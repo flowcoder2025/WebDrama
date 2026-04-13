@@ -1,46 +1,78 @@
 import { describe, it, expect } from "vitest";
 import {
+  loadRefStore,
+  updateCharacterReference,
+  getCharacterReferenceIds,
+  hasReference,
+  getReferenceName,
+} from "../src/asset/cdp/character-ref.js";
+import {
   loadSeedStore,
-  updateCharacterSeed,
-  getCharacterPromptPrefix,
-  injectCharacterConsistency,
   adaptMotionPrompt,
 } from "../src/asset/cdp/character-seed.js";
 
-describe("캐릭터 시드 관리", () => {
-  it("빈 스토어 생성", () => {
-    const store = loadSeedStore("./nonexistent-dir");
+describe("캐릭터 Reference 관리", () => {
+  it("빈 RefStore 생성", () => {
+    const store = loadRefStore("./nonexistent-dir");
     expect(store.characters).toEqual({});
   });
 
-  it("캐릭터 시드 업데이트", () => {
-    let store = loadSeedStore("./nonexistent-dir");
-    store = updateCharacterSeed(store, "char_01", "young girl, brown hair", "ugly, deformed", 42);
-    expect(store.characters["char_01"].promptPrefix).toBe("young girl, brown hair");
-    expect(store.characters["char_01"].lastUsedSeed).toBe(42);
+  it("Reference 등록 + 조회", () => {
+    let store = loadRefStore("./nonexistent-dir");
+    store = updateCharacterReference(store, "char_01", "https://pikaso.cdnpk.net/render.png", "Character 1");
+    expect(store.characters["char_01"].referenceImageUrl).toContain("pikaso");
+    expect(store.characters["char_01"].referenceName).toBe("Character 1");
+    expect(store.characters["char_01"].registeredAt).toBeTruthy();
   });
 
-  it("프롬프트 프리픽스 조회 — 존재하는 캐릭터", () => {
-    let store = loadSeedStore("./nonexistent-dir");
-    store = updateCharacterSeed(store, "char_01", "brown hair girl", "", null);
-    expect(getCharacterPromptPrefix(store, "char_01")).toBe("brown hair girl");
+  it("hasReference — 등록된 캐릭터", () => {
+    let store = loadRefStore("./nonexistent-dir");
+    store = updateCharacterReference(store, "char_01", "url", "name");
+    expect(hasReference(store, "char_01")).toBe(true);
   });
 
-  it("프롬프트 프리픽스 조회 — 없는 캐릭터", () => {
+  it("hasReference — 미등록 캐릭터", () => {
+    const store = loadRefStore("./nonexistent-dir");
+    expect(hasReference(store, "char_01")).toBe(false);
+  });
+
+  it("getCharacterReferenceIds — 등록된 캐릭터", () => {
+    let store = loadRefStore("./nonexistent-dir");
+    store = updateCharacterReference(store, "char_01", "url", "name");
+    expect(getCharacterReferenceIds(store, "char_01")).toEqual(["char_01"]);
+  });
+
+  it("getCharacterReferenceIds — 미등록 캐릭터", () => {
+    const store = loadRefStore("./nonexistent-dir");
+    expect(getCharacterReferenceIds(store, "unknown")).toEqual([]);
+  });
+
+  it("getReferenceName — 등록된 캐릭터", () => {
+    let store = loadRefStore("./nonexistent-dir");
+    store = updateCharacterReference(store, "char_01", "url", "My Character");
+    expect(getReferenceName(store, "char_01")).toBe("My Character");
+  });
+
+  it("getReferenceName — 미등록 캐릭터", () => {
+    const store = loadRefStore("./nonexistent-dir");
+    expect(getReferenceName(store, "unknown")).toBe("");
+  });
+
+  it("다중 캐릭터 Reference 독립 관리", () => {
+    let store = loadRefStore("./nonexistent-dir");
+    store = updateCharacterReference(store, "char_01", "url1", "Character A");
+    store = updateCharacterReference(store, "char_02", "url2", "Character B");
+    expect(hasReference(store, "char_01")).toBe(true);
+    expect(hasReference(store, "char_02")).toBe(true);
+    expect(getReferenceName(store, "char_01")).toBe("Character A");
+    expect(getReferenceName(store, "char_02")).toBe("Character B");
+  });
+});
+
+describe("캐릭터 시드 관리 (deprecated 호환)", () => {
+  it("빈 스토어 생성", () => {
     const store = loadSeedStore("./nonexistent-dir");
-    expect(getCharacterPromptPrefix(store, "unknown")).toBe("");
-  });
-
-  it("캐릭터 일관성 주입", () => {
-    let store = loadSeedStore("./nonexistent-dir");
-    store = updateCharacterSeed(store, "char_01", "young girl, brown hair", "", null);
-    const result = injectCharacterConsistency("classroom scene", store, "char_01");
-    expect(result).toBe("young girl, brown hair, classroom scene");
-  });
-
-  it("캐릭터 일관성 주입 — 프리픽스 없으면 원본 반환", () => {
-    const store = loadSeedStore("./nonexistent-dir");
-    expect(injectCharacterConsistency("scene", store, "unknown")).toBe("scene");
+    expect(store.characters).toEqual({});
   });
 });
 

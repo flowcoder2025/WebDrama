@@ -16,8 +16,7 @@
     "width": 1284,
     "height": 716,
     "duration": 5,
-    "timeout": 600000,
-    "uploadSelector": "input[type=file]"
+    "timeout": 600000
   },
   "download": {
     "method": "xhr-arraybuffer",
