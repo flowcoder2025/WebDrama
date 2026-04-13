@@ -32,7 +32,7 @@ describe.skipIf(!process.env.CDP_INTEGRATION)("CDP 통합", () => {
     const { registerAsReference } = await import("../src/asset/cdp/reference-manager.js");
     const { getFreepikImagePage } = await import("../src/asset/cdp/browser.js");
     const page = await getFreepikImagePage();
-    const refName = await registerAsReference(page, "https://pikaso.cdnpk.net/test");
+    const refName = await registerAsReference(page);
     expect(refName).toBeTruthy();
   });
 

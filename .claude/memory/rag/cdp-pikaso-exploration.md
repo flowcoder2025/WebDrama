@@ -62,24 +62,33 @@ const browser = await puppeteer.connect({
 
 ### References 시스템 (캐릭터 일관성 핵심)
 
-**Add 클릭 → 모달 열림 (1760x960)**
+**중요: Character/Style 카드는 유료. Add 카드만 사용 (무료, 동일 기능)**
+
+**등록 흐름 (CDP 실측 2026-04-13):**
+1. Add 카드 클릭 (grid.children[1], `cursor-pointer` div) → 모달 열림
+2. History 탭 (기본 선택됨) → 이미지 `button.aspect-square` 클릭 → 파란 테두리 + 체크
+3. 모달 하단 "Add" 버튼 클릭 (**`page.mouse.click(좌표)` 필수** — evaluate click 미동작)
+4. 모달 닫힘 → 카운터 0/14 → 1/14, 카드 `@img1` 생성
+
+**이름 규칙:** 등록 순서대로 `img1`, `img2`, `img3`, ... (imgN 형식)
+
+**멘션 흐름:**
+1. contenteditable에 `@` 타이핑 → 드롭다운에 `img1` 버튼 표시
+2. 드롭다운 항목 클릭 (**`page.mouse.click(좌표)` 필수**)
+3. 멘션 토큰 삽입: `<span data-key="img1" data-type="reference">@img1</span>`
+4. 여러 Reference 멘션 가능: `@img1 @img2 prompt text`
+
+**올바른 테스트 순서:**
+1. 화풍 기준 이미지 생성 → Add 등록 → img1
+2. 캐릭터 생성 (@img1 스타일 참조) → Add 등록 → img2
+3. 배경 생성 (@img1 스타일 참조) → Add 등록 → img3
+4. 장면 생성 → @img2 @img3 (캐릭터 + 배경 조합)
 
 모달 좌측 메뉴:
-- History — 생성 이력에서 선택
-- Uploads — 업로드한 이미지
-- Favorites — 즐겨찾기
-- Stock — 스톡 이미지
-
-AI collections:
-- Style, Character, Element, Color, Effects, Camera
+- Creations: History, Uploads, Favorites
+- All references: Stock, Style, Character, Element, Color, Effects, Camera (유료)
 
 모달 우측: "Upload media", "Take photo" 버튼
-
-**사용 흐름:**
-1. Add 클릭 → 모달에서 이미지 선택 → Add 확인
-2. 프롬프트에서 `@` 입력 → 등록된 레퍼런스 멘션
-3. 캐릭터/배경 레퍼런스 고정으로 장면 간 일관성 유지
-4. 레퍼런스 합성도 가능 (캐릭터 + 배경)
 
 ### 이미지 다운로드
 
