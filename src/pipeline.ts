@@ -304,7 +304,7 @@ export async function executeImageGeneration(state: PipelineState): Promise<Pipe
     imageUrls[scene.id] = imageUrl;
 
     for (const charId of unregisteredChars) {
-      const refName = await registerAsReference(page, imageUrl);
+      const refName = await registerAsReference(page);
       refStore = updateCharacterReference(refStore, charId, imageUrl, refName);
     }
   }
