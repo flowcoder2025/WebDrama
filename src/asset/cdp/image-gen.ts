@@ -20,8 +20,8 @@ export async function generateImage(
     await inputPrompt(page, prompt);
   }
   await clickGenerate(page, config.image.generateSelector);
-  await waitForResult(page, config.image.resultSelector, config.image.timeout);
-  const imageUrl = await extractLargestImage(page);
+  const imageUrl = await waitForNewImage(page, config.image.resultSelector, config.image.timeout);
+  await new Promise(r => setTimeout(r, 3000));
   const buffer = await downloadViaXhr(page, imageUrl);
   return { buffer, imageUrl };
 }
@@ -154,7 +154,10 @@ async function clickGenerate(page: Page, selector: string): Promise<void> {
   log("info", "Generate 클릭");
 }
 
-async function waitForResult(page: Page, selector: string, timeout: number): Promise<void> {
+/**
+ * 이미지 생성 대기 — 새로 나타난 이미지 URL을 반환
+ */
+async function waitForNewImage(page: Page, selector: string, timeout: number): Promise<string> {
   const startTime = Date.now();
 
   const existingUrls = await page.$$eval(selector, imgs =>
@@ -174,33 +177,14 @@ async function waitForResult(page: Page, selector: string, timeout: number): Pro
 
     if (!isGenerating && newUrls.length > 0) {
       log("info", `이미지 생성 완료 (${((Date.now() - startTime) / 1000).toFixed(1)}초)`);
-      return;
+      // 새 이미지 URL에서 &preview=1 제거 → 원본 해상도
+      const fullUrl = newUrls[0].replace(/&preview=1/, "");
+      log("info", `새 이미지 URL 추출`);
+      return fullUrl;
     }
 
     await new Promise(r => setTimeout(r, 2000));
   }
 
   throw new Error(`이미지 생성 타임아웃 (${timeout / 1000}초)`);
-}
-
-async function extractLargestImage(page: Page): Promise<string> {
-  await new Promise(r => setTimeout(r, 3000));
-
-  const url = await page.evaluate(() => {
-    const imgs = document.querySelectorAll("img");
-    let largest = { width: 0, src: "" };
-    for (const img of imgs) {
-      if (img.naturalWidth > largest.width && img.src.includes("pikaso")) {
-        largest = { width: img.naturalWidth, src: img.src };
-      }
-    }
-    return largest.src;
-  });
-
-  if (!url) throw new Error("생성된 이미지를 찾을 수 없음");
-
-  // &preview=1 제거 → 원본 해상도 URL
-  const fullUrl = url.replace(/&preview=1/, "");
-  log("info", `원본 이미지 URL 추출 (preview 파라미터 제거)`);
-  return fullUrl;
 }
