@@ -52,15 +52,15 @@ describe.skipIf(!process.env.CDP_INTEGRATION)("CDP 통합", () => {
     await videoPage.close();
   });
 
-  it("ensureVideoResolution → 720p 확인 (generateVideo 호출 시 720p 강제)", async () => {
+  it("ensureVideoResolution → 720 확인 (generateVideo 호출 시 720 강제)", async () => {
     const { getFreepikVideoPage } = await import("../src/asset/cdp/browser.js");
     const videoPage = await getFreepikVideoPage();
     const resText = await videoPage.evaluate(() => {
       const els = [...document.querySelectorAll("button, span")];
-      const resEl = els.find(el => /\d+p/.test(el.textContent?.trim() ?? ""));
+      const resEl = els.find(el => /^\d{3,4}p?$/.test(el.textContent?.trim() ?? ""));
       return resEl?.textContent?.trim() ?? null;
     });
-    expect(resText).toContain("720p");
+    expect(resText).toBe("720");
     await videoPage.close();
   });
 });
