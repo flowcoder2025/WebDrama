@@ -3,6 +3,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { loadFreepikConfig } from "../../common/config.js";
 import { log } from "../../common/logger.js";
+import { downloadViaXhr } from "./download.js";
 
 /**
  * WI-019: Freepik 이미지 생성기
@@ -136,28 +137,3 @@ async function extractLargestImage(page: Page): Promise<string> {
   return fullUrl;
 }
 
-/**
- * XHR ArrayBuffer 다운로드 (CORS 우회)
- */
-async function downloadViaXhr(page: Page, url: string): Promise<Buffer> {
-  const base64 = await page.evaluate(async (downloadUrl: string) => {
-    return new Promise<string>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", downloadUrl, true);
-      xhr.responseType = "arraybuffer";
-      xhr.onload = () => {
-        const arr = new Uint8Array(xhr.response as ArrayBuffer);
-        let binary = "";
-        for (let i = 0; i < arr.length; i += 8192) {
-          const chunk = arr.subarray(i, Math.min(i + 8192, arr.length));
-          binary += String.fromCharCode(...chunk);
-        }
-        resolve(btoa(binary));
-      };
-      xhr.onerror = () => reject(new Error("XHR 다운로드 실패"));
-      xhr.send();
-    });
-  }, url);
-
-  return Buffer.from(base64, "base64");
-}
