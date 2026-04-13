@@ -19,6 +19,7 @@ export async function connectBrowser(): Promise<Browser> {
   browser = await puppeteer.connect({
     browserURL: cdpUrl,
     protocolTimeout: config.chrome.protocolTimeout,
+    defaultViewport: null,
   });
 
   log("info", "Chrome CDP 연결 성공");
@@ -36,8 +37,6 @@ export async function getFreepikImagePage(): Promise<Page> {
   }
 
   const newPage = await b.newPage();
-  const config = loadProjectConfig();
-  await newPage.setViewport(config.chrome.viewport);
   await newPage.goto("https://www.freepik.com/pikaso/ai-image-generator", { waitUntil: "networkidle2" });
   log("info", "새 Freepik 이미지 탭 생성");
   return newPage;
@@ -54,8 +53,6 @@ export async function getFreepikVideoPage(): Promise<Page> {
   }
 
   const newPage = await b.newPage();
-  const config = loadProjectConfig();
-  await newPage.setViewport(config.chrome.viewport);
   await newPage.goto("https://www.freepik.com/pikaso/ai-video-generator", { waitUntil: "networkidle2" });
   log("info", "새 Freepik 영상 탭 생성");
   return newPage;
