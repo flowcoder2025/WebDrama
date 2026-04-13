@@ -17,8 +17,8 @@ import { assembleProductionSpec, validateProductionSpec } from "./story/prompt-b
 import { getFreepikImagePage, getFreepikVideoPage, getVideoPageViaCreateButton, openImageDetail, startImageViaGallery } from "./asset/cdp/browser.js";
 import { generateImage, saveImage, ensureResolution, ensureAiPromptOff } from "./asset/cdp/image-gen.js";
 import { generateVideo, saveVideo } from "./asset/cdp/video-gen.js";
-import { loadRefStore, saveRefStore, updateCharacterReference, hasReference, getReferenceName } from "./asset/cdp/character-ref.js";
-import { registerAsReference, insertReferenceMention } from "./asset/cdp/reference-manager.js";
+import { loadRefStore, saveRefStore, hasReference, updateCharacterReference } from "./asset/cdp/character-ref.js";
+import { registerByProductionId, insertReferenceMention, removeAllReferences, extractProductionId, CDP_DELAYS } from "./asset/cdp/reference-manager.js";
 import { adaptMotionPrompt } from "./asset/cdp/character-seed.js";
 import "./asset/tts/engine.js";
 import { generateSceneVoices } from "./asset/tts/narration.js";
@@ -267,7 +267,7 @@ export function getDialoguePrompts(
  * References 시스템으로 캐릭터 일관성 유지
  */
 export async function executeImageGeneration(state: PipelineState): Promise<PipelineState> {
-  log("info", "[Phase 4a] 이미지 생성");
+  log("info", "[Phase 4a] 이미지 생성 — 장면별 Reference 순환 방식");
 
   if (!state.productionSpec) {
     throw new Error("production-spec이 없음", { cause: null });
@@ -281,10 +281,28 @@ export async function executeImageGeneration(state: PipelineState): Promise<Pipe
   await ensureAiPromptOff(page);
 
   for (const scene of state.productionSpec.scenes) {
-    const characterIds = [...new Set(scene.dialogues.map(d => d.characterId))];
-    const unregisteredChars = characterIds.filter(id => id && !hasReference(refStore, id));
-    const registeredChars = characterIds.filter(id => id && hasReference(refStore, id));
+    log("info", `장면 ${scene.id} 이미지 생성`);
 
+    // 기존 Reference 전부 삭제
+    await removeAllReferences(page);
+
+    // 이 장면에 필요한 캐릭터 Reference 등록
+    const characterIds = [...new Set(scene.dialogues.map(d => d.characterId))];
+    const imgNameMap: Record<string, string> = {};
+
+    for (const charId of characterIds) {
+      if (!charId) continue;
+      if (hasReference(refStore, charId)) {
+        // 기존 캐릭터: production ID로 정밀 등록
+        const refUrl = refStore.characters[charId].referenceImageUrl;
+        const prodId = extractProductionId(refUrl);
+        const imgName = await registerByProductionId(page, prodId);
+        imgNameMap[charId] = imgName;
+      }
+      // 미등록 캐릭터는 Reference 없이 생성 → 이 장면 이미지로 자동 등록
+    }
+
+    // 프롬프트 입력: 멘션 + 본문
     const editor = await page.waitForSelector("[contenteditable]", { timeout: 10000 });
     if (!editor) throw new Error("프롬프트 입력창을 찾을 수 없음");
     await editor.click();
@@ -292,20 +310,26 @@ export async function executeImageGeneration(state: PipelineState): Promise<Pipe
     await page.keyboard.press("a");
     await page.keyboard.up("Control");
     await page.keyboard.press("Backspace");
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, CDP_DELAYS.PROMPT_CLEAR_SETTLE));
 
-    for (const charId of registeredChars) {
-      await insertReferenceMention(page, getReferenceName(refStore, charId));
+    for (const charId of characterIds) {
+      const imgName = imgNameMap[charId];
+      if (imgName) {
+        await insertReferenceMention(page, imgName);
+      }
     }
     await page.keyboard.type(scene.imagePrompt, { delay: 10 });
 
+    // 생성 + 다운로드
     const { buffer, imageUrl } = await generateImage(page, scene.imagePrompt, { skipPromptInput: true });
     await saveImage(buffer, resolve(state.assetsDir, "images", `${scene.id}.png`));
     imageUrls[scene.id] = imageUrl;
 
-    for (const charId of unregisteredChars) {
-      const refName = await registerAsReference(page);
-      refStore = updateCharacterReference(refStore, charId, imageUrl, refName);
+    // 미등록 캐릭터를 이 이미지로 자동 등록
+    for (const charId of characterIds) {
+      if (!charId || hasReference(refStore, charId)) continue;
+      refStore = updateCharacterReference(refStore, charId, imageUrl, `auto_${scene.id}`);
+      log("info", `캐릭터 ${charId} 자동 등록 (${scene.id} 이미지)`);
     }
   }
 
