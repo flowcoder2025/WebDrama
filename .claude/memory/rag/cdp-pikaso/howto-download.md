@@ -68,7 +68,7 @@ const originUrl = thumbSrc.replace(/[?&]preview=1/, '');
 const renderProdId = originUrl.match(/production\/(\d+)\//)?.[1];
 
 // 다운로드
-const outPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요_EP1/scenes/C11.png`;
+const outPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요/assets/stills/ep1/ep1_c11_still_v1.png`;
 const size = await download(originUrl, outPath);
 console.log('size=' + size + ' bytes (' + (size/1024/1024).toFixed(2) + ' MB)');
 // 기대: 7MB 근처
@@ -96,7 +96,7 @@ const srcByIdent = await vpg.evaluate((id) => {
   return vb?.closest('[data-cy="main-feed-item"]')?.querySelector('video')?.src;
 }, myIdentifier);
 
-const outPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요_EP1/videos/C11.mp4`;
+const outPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요/assets/motions/ep1/ep1_c11_v1.mp4`;
 const size = await download(vidSrc, outPath);
 console.log('size=' + size + ' bytes (' + (size/1024/1024).toFixed(2) + ' MB)');
 // 기대: 12MB 근처

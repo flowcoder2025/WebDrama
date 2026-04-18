@@ -53,6 +53,9 @@ projects/**
 !projects/*/PROJECT.md
 !projects/*/.session/
 !projects/*/.session/*.md
+!projects/*/assets/
+!projects/*/assets/_logs/
+!projects/*/assets/_logs/*.md
 
 # Parallel worktree (flowset.sh 자동 생성/정리)
 .worktrees/

@@ -246,7 +246,7 @@ Kling 2.5는 기본적으로 Start Image만 참조 (End Frame 주입 불가). se
 | 클립 | 대사 | 전략 |
 |---|---|---|
 | **EP3 C10** | "...엄마" (2음절) | phoneme 시도 → 실패 시 옆얼굴 유지 + VO |
-| **EP4 C06** | "어, 은서 씨" | 지연 미디엄 정면 — 입 모양 얇게 → 실패 시 순간 cutaway |
+| **EP4 C06** | "어, 은서 씨" | 지연 미디엄 정면 — 입 모양 얇게 → 실패 시 순간 cutaway. TTS voice_id: `vo_jiyeon` (Cowork 공통원칙 Part 10) |
 | **EP4 C10** | "...요즘, 좀 힘들어요" | 은서 CU — 입 모양 주 목표. 실패 시 C09 확장 + VO |
 
 **기본 원칙**: 나머지는 `No lip-sync, no articulation of words` 네거티브 강제.

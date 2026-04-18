@@ -114,7 +114,7 @@ console.log('registered:', JSON.stringify(registered));
 ```js
 const ipg = (await b.pages()).find(x => x.url().includes('ai-image-generator'));
 await ipg.bringToFront();
-const LOCAL_FILE = 'C:/Team-jane/WebDrama/projects/나는괜찮아요_EP1/characters/char_eunseo.png';
+const LOCAL_FILE = 'C:/Team-jane/WebDrama/projects/나는괜찮아요/assets/refs/char_eunseo_base_v1.png';
 
 // Add 모달
 const addPos = await ipg.evaluate(() => { const b = document.querySelector('[data-cy="reference-add-button"]'); const r = b.getBoundingClientRect(); return { x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2) }; });

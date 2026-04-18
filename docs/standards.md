@@ -64,7 +64,7 @@ WI-NNN-[type] 한글 작업명
 
 ### 4.2 에셋
 - Start Image: 2K, 16:9, PNG
-- Kling 모션: 1920×1080, 30fps, h.264, 10초 (예외 20초)
+- Kling 모션: 1920×1080, 30fps, h.264, 10초 (예외 20초 — **EP4 C15만 해당**. Kling에서 10초 2개 개별 생성 후 FFmpeg concat으로 병합: `ffmpeg -f concat -safe 0 -i list.txt -c copy ep4_c15_v1.mp4` — list.txt에 `file 'ep4_c15_partA.mp4'\nfile 'ep4_c15_partB.mp4'`. 둘째 파트 Start Image는 첫 파트 last frame에서 파생 — `workflow.md §3.2` 절차 참조)
 - 쇼츠: 1080×1920, 9:16
 - 썸네일: 1280×720 또는 2K 정적
 - 본편: 1920×1080, 30fps, h.264 crf 18

@@ -78,6 +78,18 @@
 ### 2.2 일반 (비체인) 컷
 Step 2 생략, Step 5에서 `@img3` 앵커 등록 생략. 나머지 동일.
 
+### 2.2-B 앵커 기반 컷 (예: EP1 C00, EP2 C01 등 — `PROJECT.md §12 Step 3` 9종)
+
+시퀀스 시작 컷 = 앵커. **체인 주입 대상이 아님** (자신이 앵커이므로). 절차:
+
+1. 2.1의 Step 1, 3~11 동일하게 Start Image 생성 (Step 2 체인 주입 생략)
+2. 다운로드 (Step 11)
+3. **2개 위치에 동일 이미지 저장**:
+   - `assets/stills/ep<n>/ep<n>_c<nn>_still_v1.png` (본편 Start Image 용도)
+   - `assets/anchors/<앵커ID>_v1.png` (예: `office_anchor_ep1_c00_v1.png`)
+4. Freepik Reference 라이브러리에 **앵커 ID로 별도 업로드 등록** (이후 체인 대상 클립이 `@img3`/`@img4`로 참조할 수 있게)
+5. 이후 체인 대상 클립은 2.1 Step 2에서 이 앵커 ID 주입
+
 ### 2.3 인서트 컷 (캐릭터 없음)
 - Cowork 프롬프트북에 "@img2 없음" 명시된 경우
 - Step 5에서 char ref 등록 생략, 배경·앵커만

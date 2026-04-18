@@ -2,7 +2,7 @@
 
 > **역할**: 이 디렉토리의 모든 파일에 대한 지도 + 상황별 빠른 진입점.
 > **언제 읽나**: 세션 시작 시 **먼저 1회**, 이후 필요 시 재참조.
-> **범용**: 다른 WebDrama 프로젝트도 이 RAG 사용. 프로젝트별 조작은 `projects/{name}/OPERATIONS.md`.
+> **범용**: 다른 WebDrama 프로젝트도 이 RAG 사용. 프로젝트별 조작·제약은 `projects/{작품}/PROJECT.md` 참조.
 > **마지막 실측**: 2026-04-17
 
 ---
@@ -126,13 +126,15 @@ grep -r "pattern" --include="*.md" --exclude="*.archived.md" .claude/memory/rag/
 
 ## 📌 프로젝트 전용 OPERATIONS 연결
 
-이 RAG는 **범용 CDP 지식**. 프로젝트별 production ID 맵 + 클립 이력 등은 프로젝트 폴더 내:
+이 RAG는 **범용 CDP 지식**. 작품별 메타 + 상위 프로젝트 SSOT 링크 + 원문 표 + 작업 순서는 작품 폴더 내:
 
 ```
-projects/{프로젝트명}/OPERATIONS.md
+projects/{작품}/PROJECT.md
+projects/{작품}/.session/                  # 세션 핸드오프 (TEMPLATE.md + 저장본)
+projects/{작품}/assets/_logs/              # 에셋 메타 JSON (생성 기록)
 ```
 
-현재 프로젝트 예: `projects/나는괜찮아요_EP1/OPERATIONS.md` (은서 + 20개 클립 + 재생성 이력)
+현재 작품 예: `projects/나는괜찮아요/PROJECT.md` (시즌 1 / 4 EP / 66 클립 / 앵커 9종 / 체인 주입 38)
 
 ---
 
