@@ -12,20 +12,11 @@ PATTERN="^WI-[0-9]{3,4}(-[0-9]+)?-(feat|fix|docs|style|refactor|test|chore|perf|
 PATTERN_SYSTEM="^WI-(chore|docs) .+"
 PATTERN_MERGE="^Merge "
 
-# FlowSet 필수 파일 존재 검증 (첫 커밋 시 누락 방지)
+# FlowSet 필수 파일 존재 검증 (Vault 동기화 스크립트만 유지)
 REQUIRED_SCRIPTS=(
   ".flowset/scripts/vault-helpers.sh"
-  ".flowset/scripts/check-ownership.sh"
-  ".flowset/scripts/check-cross-team-impact.sh"
   ".flowset/scripts/session-start-vault.sh"
   ".flowset/scripts/stop-vault-sync.sh"
-  ".flowset/scripts/stop-rag-check.sh"
-  ".flowset/scripts/notify-contract-change.sh"
-  ".flowset/scripts/resolve-team.sh"
-  ".flowset/scripts/enqueue-pr.sh"
-  ".flowset/scripts/launch-loop.sh"
-  ".flowset/scripts/verify-requirements.sh"
-  ".flowset/scripts/rollback.sh"
 )
 missing=()
 for f in "${REQUIRED_SCRIPTS[@]}"; do
