@@ -13,7 +13,7 @@
 import puppeteer from "puppeteer";
 import { writeFileSync, mkdirSync } from "node:fs";
 
-const OUT = "C:/Team-jane/WebDrama/projects/나는괜찮아요_EP1";
+const OUT = "C:/Team-jane/WebDrama/projects/나는괜찮아요/assets/_logs/screenshots";
 const cmd = process.argv[2];
 const arg = process.argv[3];
 

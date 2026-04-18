@@ -1,10 +1,13 @@
 const p = require("puppeteer");
 const fs = require("fs");
-const cutId = process.argv[2];
-if (!cutId) { console.error("Usage: node gen-video.cjs <cutId>"); process.exit(1); }
-const imgPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요_EP1/scenes/${cutId}.png`;
-const motionPath = `C:/Team-jane/WebDrama/.motion-${cutId}.txt`;
-const outPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요_EP1/videos/${cutId}.mp4`;
+const cutId = process.argv[2]; // 형식: "ep1_c11" (EP번호_컷ID)
+if (!cutId) { console.error("Usage: node gen-video.cjs <epN_cNN>  (e.g., ep1_c11)"); process.exit(1); }
+const epMatch = cutId.match(/^(ep\d+)_/);
+if (!epMatch) { console.error("cutId는 ep<N>_c<NN> 형식 (예: ep1_c11)"); process.exit(1); }
+const epDir = epMatch[1];
+const imgPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요/assets/stills/${epDir}/${cutId}_still_v1.png`;
+const motionPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요/.session/motion-${cutId}.txt`;
+const outPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요/assets/motions/${epDir}/${cutId}_v1.mp4`;
 
 (async () => {
   const b = await p.connect({ browserURL: "http://localhost:9222", defaultViewport: null });
@@ -77,6 +80,9 @@ const outPath = `C:/Team-jane/WebDrama/projects/나는괜찮아요_EP1/videos/${
       x.send();
     });
   }, vidUrl);
+  // 출력 디렉토리 보장
+  const outDir = outPath.substring(0, outPath.lastIndexOf("/"));
+  fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(outPath, Buffer.from(b64, "base64"));
   const sz = fs.statSync(outPath).size;
   console.log(`[${cutId}] 저장 prod=${prodId} ${(sz / 1024 / 1024).toFixed(1)}MB`);
