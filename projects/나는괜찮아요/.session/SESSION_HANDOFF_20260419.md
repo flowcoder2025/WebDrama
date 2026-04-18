@@ -73,7 +73,7 @@
 | ref | Cowork 프롬프트 출처 | 저장 파일명 |
 |---|---|---|
 | `char_exlover_base_v1.png` | `캐릭터레퍼런스_v3.md §A (L22~L66)` 원문 그대로 | `assets/refs/char_exlover_base_v1.png` |
-| `char_coworker_jiyeon_setA_v1.png` | `§B 본문 (L70~L118)` 의상 원문 + **`L221` 헤어 정본(shoulder-length bob)으로 덮어쓰기** (L70의 "medium-length wavy collarbone"은 폐기됨) | `assets/refs/char_coworker_jiyeon_setA_v1.png` |
+| `char_coworker_jiyeon_setA_v1.png` | `§B 본문 (L70~L118)` 의상 원문 + **`L221` 헤어 정본(shoulder-length bob)으로 덮어쓰기** (L82~L84의 "medium-length wavy dark brown ... collarbone"은 폐기됨) | `assets/refs/char_coworker_jiyeon_setA_v1.png` |
 | `char_coworker_jiyeon_setB_v1.png` | `§B 본문 (L70~L118)` 프롬프트 골격 + **`L217` 의상 슬롯 B 스펙**(네이비 블레이저 / 흰 스트라이프 블라우스 / 베이지 슬랙스 / 블랙 플랫 로퍼 / 골드 스터드 / 실버 시계 왼손)으로 **조합** + `L221` 헤어 + `L223~L242` Clause C-EP4 참조 | `assets/refs/char_coworker_jiyeon_setB_v1.png` |
 
 **지연 세트 B 프롬프트 조합 방법** (Cowork에 독립 프롬프트 없음):
@@ -135,7 +135,7 @@
 | Tab 0 | `/ai-video-generator` | 이전 세션(4/17) 기준: 초기화됨 (Start Image 없음, 프롬프트 empty) |
 | Tab 1 | `/ai-image-generator` | Reference 0개, 프롬프트 empty, Nano Banana 2 / 2K / 16:9 / AI prompt OFF |
 
-**다음 세션 첫 30초 액션 시 CHEATSHEET.md 스니펫 1로 실제 상태 재확인 필수**.
+**세션 시작 직후 CHEATSHEET.md 스니펫 1로 실제 상태 재확인 필수**.
 
 ---
 
@@ -186,13 +186,18 @@ gh pr view 23 --json state,mergedAt,mergeStateStatus
 
 ## 🕰 본 핸드오프 stale 감지
 
-이 핸드오프는 **커밋 `237aaa3` 시점 기준**. 다음 세션 시작 시:
+이 핸드오프는 **커밋 `1eff9a3` 시점 기준**. 다음 세션 시작 시:
 
 ```bash
-git log --oneline projects/나는괜찮아요/PROJECT.md docs/workflow.md .claude/agents/evaluator.md
+# 본 핸드오프 작성 이후 핵심 문서에 추가 커밋이 있었는지 확인
+git log --oneline 1eff9a3..HEAD -- \
+  projects/나는괜찮아요/PROJECT.md \
+  docs/workflow.md \
+  .claude/agents/evaluator.md \
+  docs/standards.md
 ```
 
-위 명령으로 `PROJECT.md`/`workflow.md`/`evaluator.md` 최근 커밋 해시 확인. **237aaa3 이후의 커밋이 있으면** 본 핸드오프 내용이 실제 문서와 일치하는지 대조 필수 (특히 §🚀 우선순위·§🔑 핵심 의사결정·§📁 retry-count 형식).
+위 명령이 **하나 이상의 커밋을 반환하면** 본 핸드오프 내용이 실제 문서와 일치하는지 대조 필수 (특히 §🚀 우선순위·§🔑 핵심 의사결정·§📁 retry-count 형식). **아무것도 반환하지 않으면** 본 핸드오프가 최신 상태.
 
 ---
 
