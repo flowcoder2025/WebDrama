@@ -70,8 +70,30 @@ WI-NNN-[type] 한글 작업명
 - 본편: 1920×1080, 30fps, h.264 crf 18
 
 ### 4.3 에셋 메타데이터
-- 생성 시 사용된 프롬프트·파라미터·시드 기록
-- 재현 가능해야 함 (저장 위치: `PROJECT.md` 또는 `assets/_logs/`)
+
+- 각 생성 에셋마다 메타 JSON 1개씩 기록 (재현 가능성 보장)
+- 저장 위치: `projects/{작품}/assets/_logs/{ep}_{cc}_meta.json`
+- 스키마:
+  ```json
+  {
+    "asset": "ep1_c05_still_v1.png",
+    "type": "still|motion|vo|bgm|sfx|final|shorts|thumb",
+    "created_at": "2026-04-19T20:00:00+09:00",
+    "version": 1,
+    "attempts": 3,
+    "engine": "NanoBanana2|Kling2.5|Qwen3-TTS|GPT-SoVITS|edge-tts|ACE-Step",
+    "references": ["char_eunseo_base_v1.png", "loc_office_daytime", "office_anchor_ep1_c00"],
+    "prompt": "@img2 Strictly preserve the reference woman's ...",
+    "negative": "no text, no watermark, no bracelet",
+    "params": { "resolution": "2K", "ratio": "16:9", "aspect": "landscape" },
+    "source_prompt_section": "Cowork/나는괜찮아요_시즌1_프롬프트북_v3_EP1.md §3 C05",
+    "chained_from": null,
+    "compliance_notes": ["의상 A세트 일치", "골드 체인 visible"]
+  }
+  ```
+- `attempts`: 통과까지 걸린 횟수. `retry-count.json`과 일치해야 함.
+- `chained_from`: 프레임 체이닝 시 이전 클립 ID (예: `ep1_c10_v1.mp4`)
+- `references`: Freepik에 등록된 ref 파일명 또는 prodId 목록
 
 ## 5. 인코딩·줄바꿈
 

@@ -106,7 +106,7 @@ await sleep(1500);
 
 // 2. 파일 업로드 (Puppeteer uploadFile)
 const fileInput = await pg.$('[data-cy="advanced-selection-upload-file-input"]');
-await fileInput.uploadFile('C:/Team-jane/WebDrama/projects/나는괜찮아요_EP1/characters/char_eunseo.png');
+await fileInput.uploadFile('C:/Team-jane/WebDrama/projects/나는괜찮아요/assets/refs/char_eunseo_base_v1.png');
 await sleep(3500);  // 업로드 처리 대기
 
 // 3. (선택적) 업로드된 이미지의 새 prodId 포착 (나중 재사용용)

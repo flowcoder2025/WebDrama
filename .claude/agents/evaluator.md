@@ -121,11 +121,24 @@ hooks:
 
 ## 평가 절차
 
-### 1. 스프린트 계약 읽기
+### 1. 평가 기준 읽기
+
+**모드 분기**:
+
+#### 1-A. 코드 프로젝트 모드 (스프린트 계약 존재 시)
 - `.flowset/contracts/sprint-{WI번호}.md` 읽기
-- 수용 기준 (Acceptance Criteria) 확인
-- 검증 방법 (Verification Method) 확인
-- 합의 상태 확인 (생성자-평가자 합의 완료인지)
+- 수용 기준 / 검증 방법 / 합의 상태 확인
+
+#### 1-B. WebDrama 컷 단위 모드 (스프린트 계약 없음 — **본 프로젝트 기본**)
+- `projects/{작품}/PROJECT.md` 읽기:
+  - §10 EP별 핵심 체크포인트
+  - §11 품질 판정·재시도 기준 표
+  - §6 체인 주입 매핑 (체인 대상 컷이면 앵커 일관성 검증)
+  - §7 프레임 체이닝 8쌍 (해당 쌍이면 연속성 검증)
+  - §8 립싱크 예외 3컷 (해당 컷이면 phoneme 품질 별도 평가)
+  - §3 캐릭터 매트릭스 + 핵심 제약 (골드체인 EP 분기, 의상 슬롯 등)
+- 해당 컷의 Cowork 프롬프트북 섹션(`나는괜찮아요_시즌1_프롬프트북_v3_EP<n>.md`) 읽기
+- `docs/standards.md` 파일 네이밍·품질 규약 확인
 
 ### 2. 결과물 심층 검증
 - 생성자가 수정/생성한 파일 **전부** 읽기
@@ -164,10 +177,21 @@ RECOMMENDATION:
 ```
 
 ### 4. 판정
-- **10점**: PASS → 채점표를 리드에게 반환. **리드가** `mkdir -p .flowset/eval-results && touch .flowset/eval-results/WI-{NNN}.pass` 마커를 생성한다. evaluator는 마커를 만들지 않는다.
-- **5~9.9점**: REWORK → 채점표 + 구체적 피드백을 리드에게 반환. 리드가 해당 팀원에게 ISSUES 전달 → 수정 → 리드가 다시 evaluator spawn
-- **5점 미만**: REGENERATE → 전면 재생성 필요. 리드에게 반환하여 처음부터 다시 작업 지시.
-- **최대 재평가 10회**: 10회 REWORK이면 현재 최고 점수 버전 + 피드백을 사용자에게 제시 → 사용자 직접 판단
+
+**코드 프로젝트 모드 (1-A)**:
+- **10점**: PASS → 채점표를 리드에게 반환. 리드가 `mkdir -p .flowset/eval-results && touch .flowset/eval-results/WI-{NNN}.pass` 마커 생성
+- **5~9.9점**: REWORK → 채점표 + 피드백 반환
+- **5점 미만**: REGENERATE
+- **최대 재평가 10회**: 초과 시 최고 점수 버전 + 피드백을 사용자에게 제시
+
+**WebDrama 컷 단위 모드 (1-B)**:
+- 평가 결과 저장: `projects/{작품}/assets/_logs/eval-{ep}-{cc}-v{n}.json` (신규 생성)
+- 재작업 카운트 기록: `projects/{작품}/.session/retry-count.json` 업데이트
+  - 형식: `{"ep1_c05": {"attempts": N, "last_score": X, "last_verdict": "PASS|REWORK|REGENERATE"}}`
+- **10점**: PASS → eval 결과 저장, retry-count `final_version` 기록
+- **5~9.9점**: REWORK → 구체 ISSUES 반환. 사용자/리드가 프롬프트 diff 후 재생성
+- **5점 미만**: REGENERATE → 프롬프트·ref·접근 전면 재검토
+- **최대 재평가 10회**: 초과 시 최고 점수 버전 + 피드백을 사용자에게 제시 → 사용자 직접 판단
 
 ## 허위주장 방어 (v3.4 — Claude Code 유출 분석 반영)
 

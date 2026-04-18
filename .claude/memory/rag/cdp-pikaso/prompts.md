@@ -181,10 +181,40 @@ medium-dark charcoal gray wool slacks, not black, not light gray
 
 **자세는 Start Image에서 일관 유지 + 감정은 표정/손/어깨**로만 표현.
 
-### 7. 립싱크 포기 — 대사는 나레이션/보이스오버
-- Kling에서 한국어 대사 립싱크 불안정
-- 캐릭터 대사는 **나레이션 방식** (영상에서는 입 움직임 없이 감정 표현만)
+### 7. 립싱크 포기 — **기본 원칙**
+- Kling에서 한국어 대사 립싱크 불안정 → 대부분 나레이션/VO 방식
 - K-드라마 웹드라마에서 더 자연스러움
+- 네거티브: `No lip-sync, no articulation of words. Mouth closed or slightly parted, not articulating.`
+
+### 7-B. 립싱크 예외 레시피 (작품별 예외 컷에만 적용)
+
+작품 단위로 립싱크 예외 컷이 있을 수 있음 (예: 「나는 괜찮아요」는 3컷 예외 — PROJECT.md §8 참조).
+
+**Kling 프롬프트 구문 (Cowork 공통원칙 Part 11 기반)**:
+```
+attempt subtle phoneme-matched lip movement for the line "[대사]",
+but if lip sync fails, keep mouth closed or slightly parted — 
+the line will be layered as voice-over in post.
+```
+
+**실제 예시 (EP3 C10 "...엄마")**:
+```
+Seconds 6–8: her lips quietly shape the Korean word "...엄마" — 
+the mouth movements match the Korean phonemes (m → eo → m → a) 
+subtly, not exaggerated. This is the only clip in the episode 
+where her lips perform phoneme shapes, and it is subtle — 
+audio (voice-over whisper "...엄마") is synchronized in post.
+```
+
+**실패 판정 기준**:
+- 입 모양이 대사와 명백히 어긋남 (다른 음절)
+- 과장된 애니메이션 (실사감 파괴)
+- 부자연스러운 턱 움직임
+
+**Fallback 순서**:
+1. 1회 재시도 (phoneme 표현 간소화)
+2. 재실패 시 "mouth closed" 버전으로 재생성 → TTS VO만 사용
+3. 극단적 경우: 편집 단계에서 직전 클립 확장 + 해당 구간 커트어웨이
 
 ### 8. 짧고 물리적으로 가능한 것만
 - "Slow push in. Raindrops slide down the window glass. The girl breathes quietly."
