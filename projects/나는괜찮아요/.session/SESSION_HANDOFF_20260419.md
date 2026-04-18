@@ -72,9 +72,15 @@
 
 | ref | Cowork 프롬프트 출처 | 저장 파일명 |
 |---|---|---|
-| `char_exlover_base_v1.png` | `캐릭터레퍼런스_v3.md §A (L22~L66)` | `assets/refs/char_exlover_base_v1.png` |
-| `char_coworker_jiyeon_setA_v1.png` | `§B 세트 A (L70~)` | `assets/refs/char_coworker_jiyeon_setA_v1.png` |
-| `char_coworker_jiyeon_setB_v1.png` | `§B 세트 B` | `assets/refs/char_coworker_jiyeon_setB_v1.png` |
+| `char_exlover_base_v1.png` | `캐릭터레퍼런스_v3.md §A (L22~L66)` 원문 그대로 | `assets/refs/char_exlover_base_v1.png` |
+| `char_coworker_jiyeon_setA_v1.png` | `§B 본문 (L70~L118)` 의상 원문 + **`L221` 헤어 정본(shoulder-length bob)으로 덮어쓰기** (L70의 "medium-length wavy collarbone"은 폐기됨) | `assets/refs/char_coworker_jiyeon_setA_v1.png` |
+| `char_coworker_jiyeon_setB_v1.png` | `§B 본문 (L70~L118)` 프롬프트 골격 + **`L217` 의상 슬롯 B 스펙**(네이비 블레이저 / 흰 스트라이프 블라우스 / 베이지 슬랙스 / 블랙 플랫 로퍼 / 골드 스터드 / 실버 시계 왼손)으로 **조합** + `L221` 헤어 + `L223~L242` Clause C-EP4 참조 | `assets/refs/char_coworker_jiyeon_setB_v1.png` |
+
+**지연 세트 B 프롬프트 조합 방법** (Cowork에 독립 프롬프트 없음):
+1. `캐릭터레퍼런스_v3.md §B` 본문(L70~L118) 복사 (얼굴·피부·프로포션 등 공통)
+2. 본문 내 의상 설명 블록을 `L217` 세트 B 스펙으로 치환
+3. 본문 내 헤어 설명을 `L221` 정본(shoulder-length straight-to-gentle-wave bob)으로 치환
+4. 완성 프롬프트를 Clause C-EP4(`L223~L242`)와 대조 검증
 
 절차는 `PROJECT.md §12 Step 1`의 공통 7단계 + `docs/workflow.md §2` 참조.
 
@@ -115,6 +121,8 @@
 | Reference `@imgN` 멘션 후 삭제 | dangling | 전체 삭제 후 재등록 |
 | 앵커 생성 없이 체인 클립 먼저 생성 | `@img3` 참조 실패 | Step 3 앵커 9종 먼저 완료 |
 | EP별 체인 앵커 번호 혼동 | EP4는 `@img4`, 나머지 `@img3` | PROJECT.md §6 매핑표 엄격 준수 |
+| 결과물 Compliance 체크 시 생성물만 보기 | Cowork 컷 설계 의도 누락 검증 | **매 Compliance 체크마다** HANDOFF v3.1 + 해당 EP 프롬프트북 원문 동시 열람 (memory: feedback_verify_with_story) |
+| 지연 세트 B ref 생성 시 L70 원문 헤어 그대로 사용 | L70 "wavy collarbone"은 폐기된 스펙, 드리프트 | **L221 정본 "shoulder-length bob"으로 덮어쓰기 필수** |
 
 ---
 
@@ -134,19 +142,33 @@
 ## 📁 재시도 카운트 상태
 
 - `projects/나는괜찮아요/.session/retry-count.json` — **아직 없음** (첫 생성 시 Claude가 만듦)
-- 형식: `{"ep1_c00": {"attempts": N, "last_score": X, "last_verdict": "PASS|REWORK|REGENERATE"}}`
+- **확정 형식** (REWORK/PASS 공통):
+  ```json
+  {
+    "ep1_c00": {
+      "attempts": 3,
+      "last_score": 9.2,
+      "last_verdict": "PASS",
+      "final_version": 2
+    }
+  }
+  ```
+- `attempts`: 총 시도 횟수 (PASS 시에도 누적)
+- `last_score`: 가장 최근 evaluator 점수
+- `last_verdict`: `PASS` | `REWORK` | `REGENERATE`
+- `final_version`: PASS 판정된 버전 번호. REWORK 중엔 **생략 또는 null**
 
 ---
 
-## 🧭 다음 세션 첫 30초 액션
+## 🧭 다음 세션 첫 체크리스트 (실제 소요 1~2분)
 
 ```
-1. 이 SESSION_HANDOFF_20260419.md Read (전체)
+1. 이 SESSION_HANDOFF_20260419.md Read (전체, ~8KB)
 2. projects/나는괜찮아요/PROJECT.md Read (§1~§3 우선)
 3. docs/workflow.md §2 Read (컷 단위 체크리스트)
 4. CHEATSHEET.md 스니펫 1로 브라우저 CDP 9222 연결·탭 상태 실측
-5. PROJECT.md §1.1 Cowork mtime 체크 (freeze 해제 여부)
-6. 사용자에게 "EP1 C00 앵커부터 시작할까요? (민준/지연 ref가 EP1 C00에는 불필요, C00은 은서 단독 CU)" 확인
+5. PROJECT.md §1.1 Cowork mtime 체크 (freeze 해제 여부 — stat 5개)
+6. 사용자에게 "EP1 C00 앵커부터 시작할까요? (C00은 은서 단독 CU, 민준/지연 ref 불필요)" 확인
 ```
 
 ---
@@ -159,6 +181,18 @@ gh pr view 23 --json state,mergedAt,mergeStateStatus
 ```
 - `state: MERGED` 면: `git checkout main && git pull` 후 작업
 - `state: OPEN` 이면: 브랜치 `chore/WI-chore-restructure-webdrama`에서 계속 or 머지 후 작업
+
+---
+
+## 🕰 본 핸드오프 stale 감지
+
+이 핸드오프는 **커밋 `237aaa3` 시점 기준**. 다음 세션 시작 시:
+
+```bash
+git log --oneline projects/나는괜찮아요/PROJECT.md docs/workflow.md .claude/agents/evaluator.md
+```
+
+위 명령으로 `PROJECT.md`/`workflow.md`/`evaluator.md` 최근 커밋 해시 확인. **237aaa3 이후의 커밋이 있으면** 본 핸드오프 내용이 실제 문서와 일치하는지 대조 필수 (특히 §🚀 우선순위·§🔑 핵심 의사결정·§📁 retry-count 형식).
 
 ---
 
