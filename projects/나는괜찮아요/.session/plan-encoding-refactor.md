@@ -1,19 +1,19 @@
 # 인코딩 통합 리팩토링 plan v5
 
 작성일: 2026-04-20
-버전: v5 (§ 이중 표기 폐기 - 복잡성 뿌리 제거)
+버전: v5 (섹션 이중 표기 폐기 - 복잡성 뿌리 제거)
 목적: WebDrama 프로젝트 글자 깨짐 + Windows UTF-8 이슈 통합 해결
 
 ---
 
 ## 0. v4 -> v5 핵심 변경
 
-v4까지 section sign 이중 표기(`섹션 N (원문 §N)`) 규칙이 혼합 라인 처리 복잡성의 뿌리였음. v5는 이를 완전 폐기하고 **모든 § -> `섹션 N` 단순 치환**으로 축소.
+v4까지 section sign 이중 표기(`섹션 N (원문 섹션 N)`) 규칙이 혼합 라인 처리 복잡성의 뿌리였음. v5는 이를 완전 폐기하고 **모든 섹션 -> `섹션 N` 단순 치환**으로 축소.
 
 효과:
 - 5규칙 분기 -> 1규칙 (자체/Cowork/혼합 구분 없이 모두 `섹션`)
-- 혼합 라인 문제 자동 해소 (§이 문서에서 완전 사라짐)
-- CI lint 단순화: `§` 발견 = 위반
+- 혼합 라인 문제 자동 해소 (섹션 이 문서에서 완전 사라짐)
+- CI lint 단순화: `섹션 ` 발견 = 위반
 - Python 매치 단위, 80자 창 규칙 등 복잡 로직 불필요
 
 ---
@@ -34,9 +34,9 @@ wi-utf8.md 섹션 1 완전 준수 (환경변수 4종 + Windows 감지 chcp.com 6
 
 | 분류 | 문자 | 파일 수 |
 |---|---|---|
-| A. section sign (U+00A7) | `§` | 11 |
-| B. middle dot (U+00B7) | `·` | 16 |
-| C. white medium star (U+2B50) | `⭐` | 9 (_archive 1 포함) |
+| A. section sign (U+00A7) | `섹션 ` | 11 |
+| B. middle dot (U+00B7) | `, ` | 16 |
+| C. white medium star (U+2B50) | `*` | 9 (_archive 1 포함) |
 | D. box-drawing (U+2500~U+257F) | | 6 |
 | E. 14종 매핑군 | | ~42 |
 
@@ -48,7 +48,7 @@ CLAUDE.md, PRD.md, standards.md, architecture.md 4 파일 샘플 전수 AND 열�
 line 98~103 4줄 존재. v5에서 확장 대상.
 
 ### 2.4 Cowork 원본
-Cowork 측에는 여전히 § 존재 (외부 SSOT, 본 PR 수정 대상 아님). WebDrama 측 § 치환 후 Cowork grep 정합성은 별도 방식 유지 (아래 섹션 6 참조).
+Cowork 측에는 여전히 섹션 존재 (외부 SSOT, 본 PR 수정 대상 아님). WebDrama 측 섹션 치환 후 Cowork grep 정합성은 별도 방식 유지 (아래 섹션 6 참조).
 
 ---
 
@@ -99,14 +99,14 @@ Cowork 측에는 여전히 § 존재 (외부 SSOT, 본 PR 수정 대상 아님).
 
 ### 3.3 section sign 단일 규칙 (v5 핵심 변경)
 
-**모든 § -> `섹션 N` 단순 치환**. 자체 참조, Cowork 참조, 혼합 라인, 연쇄 패턴 구분 없음.
+**모든 섹션 -> `섹션 N` 단순 치환**. 자체 참조, Cowork 참조, 혼합 라인, 연쇄 패턴 구분 없음.
 
 예시:
-- `PROJECT.md §3` -> `PROJECT.md 섹션 3`
-- `Cowork/로케이션레퍼런스_v3.md §2.4` -> `Cowork/로케이션레퍼런스_v3.md 섹션 2.4`
-- `§6·§7·§8·§9` -> `섹션 6, 섹션 7, 섹션 8, 섹션 9` (middle dot 치환 후)
-- `§2.1~§2.16` -> `섹션 2.1~2.16` (두 번째 § 제거)
-- `§🚀` -> `섹션` (이모지 제거 + 치환)
+- `PROJECT.md 섹션 3` -> `PROJECT.md 섹션 3`
+- `Cowork/로케이션레퍼런스_v3.md 섹션 2.4` -> `Cowork/로케이션레퍼런스_v3.md 섹션 2.4`
+- `섹션 6, 섹션 7, 섹션 8, 섹션 9` -> `섹션 6, 섹션 7, 섹션 8, 섹션 9` (middle dot 치환 후)
+- `섹션 2.1~섹션 2.16` -> `섹션 2.1~2.16` (두 번째 섹션 제거)
+- `섹션 ` -> `섹션` (이모지 제거 + 치환)
 
 ### 3.4 middle dot 치환
 
@@ -114,16 +114,16 @@ Cowork 측에는 여전히 § 존재 (외부 SSOT, 본 PR 수정 대상 아님).
 
 ### 3.5 치환 순서
 
-section sign 치환 먼저, middle dot 치환 나중. 이유: `§A·§B·§C` 패턴에서 middle dot 먼저 치환 시 `§A, §B, §C`가 되어 § 잔존.
+section sign 치환 먼저, middle dot 치환 나중. 이유: `섹션 A, 섹션 B, 섹션 C` 패턴에서 middle dot 먼저 치환 시 `섹션 A, 섹션 B, 섹션 C`가 되어 섹션 잔존.
 
 ### 3.6 box-drawing
 
 | 문자 | 대체 |
 |---|---|
-| `─` | `-` |
-| `│` | `\|` |
-| `├`, `└` | `+-` |
-| `┌`, `┐`, `┘` | `+` |
+| `-` | `-` |
+| `|` | `\|` |
+| `+-`, `+-` | `+-` |
+| `+`, `+`, `+` | `+` |
 
 ### 3.7 체크박스 예외
 
@@ -140,7 +140,7 @@ markdown 체크박스 `\[[\sxX]\]` 단독 패턴 보호.
 - projects/나는괜찮아요/.session/plan-step1-characters.md
 - projects/나는괜찮아요/.session/plan-step2-locations.md
 - projects/나는괜찮아요/.session/plan-encoding-refactor.md (본 plan) - **포함**
-  - v5에서 § 사용 최소화 (매핑 표의 U+00A7 코드포인트 언급만, 본문에서 § 직접 사용 없음)
+ - v5에서 섹션 사용 최소화 (매핑 표의 U+00A7 코드포인트 언급만, 본문에서 섹션 직접 사용 없음)
 - projects/나는괜찮아요/.session/SESSION_HANDOFF_20260419.md
 - projects/나는괜찮아요/.session/TEMPLATE.md
 - projects/나는괜찮아요/assets/_logs/README.md
@@ -181,7 +181,7 @@ markdown 체크박스 `\[[\sxX]\]` 단독 패턴 보호.
 ### 4.3 화이트리스트 (CI lint 제외)
 
 - **docs/standards.md 섹션 5 규약 설명 블록만** (section sign 코드포인트 언급 허용)
-- 본 plan은 § 사용 최소화했으므로 화이트리스트 불필요 (§ 직접 사용 시 `U+00A7`로 표기)
+- 본 plan은 섹션 사용 최소화했으므로 화이트리스트 불필요 (섹션 직접 사용 시 `U+00A7`로 표기)
 
 ---
 
@@ -269,9 +269,9 @@ ASCII 대체 가능 기호는 ASCII 사용.
 ### 5.6 섹션 참조 기호 (section sign U+00A7) 처리
 WebDrama 문서 전체에서 section sign 사용 금지. 모두 "섹션 N" 한글로 치환.
 
-Cowork 원본은 section sign 사용 중 (외부 SSOT). WebDrama 측 "섹션 N"과 Cowork 측 "§N"이 의미상 동일. grep 시 양쪽 패턴 모두 확인:
+Cowork 원본은 section sign 사용 중 (외부 SSOT). WebDrama 측 "섹션 N"과 Cowork 측 "섹션 N"이 의미상 동일. grep 시 양쪽 패턴 모두 확인:
 - WebDrama 내부: "섹션 N"
-- Cowork 원본: "§N"
+- Cowork 원본: "섹션 N"
 
 Cowork 측에도 장기적 동기화 요청 예정 (별도 PR).
 ```
@@ -293,7 +293,7 @@ docs/standards.md 섹션 5 참조.
 
 ### Commit 1: `WI-docs 인코딩 규약 standards.md 섹션 5 확장`
 - docs/standards.md 섹션 5 확장 (기존 4줄 -> 6 하위 섹션)
-- standards.md 본문 기존 § 치환 (line 67, 89 등 전수)
+- standards.md 본문 기존 섹션 치환 (line 67, 89 등 전수)
 - .claude/rules/project.md 참조 라인
 - CLAUDE.md 참조 라인
 - diff: ~100줄
@@ -333,7 +333,7 @@ docs/standards.md 섹션 5 참조.
 - smoke 테스트 명령 3 실행
 - diff: ~80줄
 
-Cowork 측 § -> 섹션 동기화 요청은 별도 PR (본 PR 스코프 외).
+Cowork 측 섹션 -> 섹션 동기화 요청은 별도 PR (본 PR 스코프 외).
 
 ---
 
@@ -353,92 +353,92 @@ import sys
 from pathlib import Path
 
 FORBIDDEN_CHARS = set([
-    '\u00a7',  # section sign
-    '\u00b7',  # middle dot
-    '\u2013', '\u2014', '\u2026',
-    '\u2190', '\u2192', '\u2194',
-    '\u2264', '\u2265',
-    '\u2605', '\u2606', '\u2b50', '\u2728',
-    '\u2713', '\u2714', '\u2717',
-    '\u26a0', '\u2705', '\u274c',
-    '\u25b6', '\u25bc', '\u25b3',
-    '\u2022',
+ '\u00a7', # section sign
+ '\u00b7', # middle dot
+ '\u2013', '\u2014', '\u2026',
+ '\u2190', '\u2192', '\u2194',
+ '\u2264', '\u2265',
+ '\u2605', '\u2606', '\u2b50', '\u2728',
+ '\u2713', '\u2714', '\u2717',
+ '\u26a0', '\u2705', '\u274c',
+ '\u25b6', '\u25bc', '\u25b3',
+ '\u2022',
 ])
 
 EMOJI_RANGES = [
-    (0x1F300, 0x1F5FF), (0x1F600, 0x1F64F), (0x1F680, 0x1F6FF),
-    (0x1F700, 0x1F77F), (0x1F780, 0x1F7FF), (0x1F800, 0x1F8FF),
-    (0x1F900, 0x1F9FF), (0x1FA00, 0x1FA6F), (0x1FA70, 0x1FAFF),
-    (0x2600, 0x26FF), (0x2700, 0x27BF), (0x2B00, 0x2BFF),
+ (0x1F300, 0x1F5FF), (0x1F600, 0x1F64F), (0x1F680, 0x1F6FF),
+ (0x1F700, 0x1F77F), (0x1F780, 0x1F7FF), (0x1F800, 0x1F8FF),
+ (0x1F900, 0x1F9FF), (0x1FA00, 0x1FA6F), (0x1FA70, 0x1FAFF),
+ (0x2600, 0x26FF), (0x2700, 0x27BF), (0x2B00, 0x2BFF),
 ]
 BOX_DRAWING_RANGE = (0x2500, 0x257F)
 
 CHECKBOX_PATTERN = re.compile(r'\[[\sxX]\]')
 
 WHITELIST_PATHS = {
-    'docs/standards.md',  # 섹션 5 규약 설명 블록에 U+00A7 코드포인트 언급 허용
+ 'docs/standards.md', # 섹션 5 규약 설명 블록에 U+00A7 코드포인트 언급 허용
 }
 
 EXCLUDED_DIRS = {'_archive', '.git', 'node_modules'}
 
 
 def is_emoji(c):
-    cp = ord(c)
-    return any(start <= cp <= end for start, end in EMOJI_RANGES)
+ cp = ord(c)
+ return any(start <= cp <= end for start, end in EMOJI_RANGES)
 
 
 def is_box_drawing(c):
-    cp = ord(c)
-    return BOX_DRAWING_RANGE[0] <= cp <= BOX_DRAWING_RANGE[1]
+ cp = ord(c)
+ return BOX_DRAWING_RANGE[0] <= cp <= BOX_DRAWING_RANGE[1]
 
 
 def check_line(line):
-    # 체크박스 토큰 마스킹
-    line_masked = CHECKBOX_PATTERN.sub('', line)
-    violations = []
-    for c in line_masked:
-        if c in FORBIDDEN_CHARS:
-            violations.append((c, f'U+{ord(c):04X} forbidden'))
-        elif is_emoji(c):
-            violations.append((c, f'U+{ord(c):04X} emoji'))
-        elif is_box_drawing(c):
-            violations.append((c, f'U+{ord(c):04X} box-drawing'))
-    return violations
+ # 체크박스 토큰 마스킹
+ line_masked = CHECKBOX_PATTERN.sub('', line)
+ violations = []
+ for c in line_masked:
+ if c in FORBIDDEN_CHARS:
+ violations.append((c, f'U+{ord(c):04X} forbidden'))
+ elif is_emoji(c):
+ violations.append((c, f'U+{ord(c):04X} emoji'))
+ elif is_box_drawing(c):
+ violations.append((c, f'U+{ord(c):04X} box-drawing'))
+ return violations
 
 
 def check_file(path, rel_path):
-    rel = rel_path.replace('\\', '/')
-    if rel in WHITELIST_PATHS:
-        return []
-    try:
-        text = path.read_text(encoding='utf-8')
-    except (UnicodeDecodeError, OSError) as e:
-        return [(0, f'READ_ERROR: {e}')]
-    violations = []
-    for i, line in enumerate(text.splitlines(), 1):
-        for ch, msg in check_line(line):
-            violations.append((i, f'{msg} {repr(ch)} in: {line.strip()[:80]}'))
-    return violations
+ rel = rel_path.replace('\\', '/')
+ if rel in WHITELIST_PATHS:
+ return []
+ try:
+ text = path.read_text(encoding='utf-8')
+ except (UnicodeDecodeError, OSError) as e:
+ return [(0, f'READ_ERROR: {e}')]
+ violations = []
+ for i, line in enumerate(text.splitlines(), 1):
+ for ch, msg in check_line(line):
+ violations.append((i, f'{msg} {repr(ch)} in: {line.strip()[:80]}'))
+ return violations
 
 
 def main():
-    root = Path('.')
-    total = 0
-    for path in root.rglob('*.md'):
-        if any(part in EXCLUDED_DIRS for part in path.parts):
-            continue
-        rel = str(path.relative_to(root))
-        for line_no, msg in check_file(path, rel):
-            print(f'{rel}:{line_no}: {msg}')
-            total += 1
-    if total:
-        print(f'\nTotal violations: {total}', file=sys.stderr)
-        return 1
-    return 0
+ root = Path('.')
+ total = 0
+ for path in root.rglob('*.md'):
+ if any(part in EXCLUDED_DIRS for part in path.parts):
+ continue
+ rel = str(path.relative_to(root))
+ for line_no, msg in check_file(path, rel):
+ print(f'{rel}:{line_no}: {msg}')
+ total += 1
+ if total:
+ print(f'\nTotal violations: {total}', file=sys.stderr)
+ return 1
+ return 0
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+ sys.exit(main())
 ```
 
 ### 8.2 scripts/check-doc-encoding.sh (래퍼)
@@ -463,40 +463,40 @@ python3 "$(dirname "$0")/check-doc-encoding.py"
 name: Document Encoding Check
 
 on:
-  pull_request:
-    paths:
-      - '**/*.md'
-      - 'scripts/check-doc-encoding.*'
-      - '.github/workflows/doc-encoding.yml'
-  workflow_dispatch:
+ pull_request:
+ paths:
+ - '**/*.md'
+ - 'scripts/check-doc-encoding.*'
+ - '.github/workflows/doc-encoding.yml'
+ workflow_dispatch:
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+ check:
+ runs-on: ubuntu-latest
+ steps:
+ - name: Checkout
+ uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+ - name: Setup Python
+ uses: actions/setup-python@v5
+ with:
+ python-version: '3.11'
 
-      - name: Run encoding check
-        shell: bash
-        env:
-          PYTHONUTF8: '1'
-          PYTHONIOENCODING: utf-8
-        run: |
-          chmod +x scripts/check-doc-encoding.sh
-          ./scripts/check-doc-encoding.sh
+ - name: Run encoding check
+ shell: bash
+ env:
+ PYTHONUTF8: '1'
+ PYTHONIOENCODING: utf-8
+ run: |
+ chmod +x scripts/check-doc-encoding.sh
+ ./scripts/check-doc-encoding.sh
 ```
 
 ### 8.4 검증 예시 (v5 단순 규칙)
 
-- `PROJECT.md 섹션 3 참조` -> § 없음 -> OK
-- `PROJECT.md §3 참조` -> § 위반 -> FAIL (치환 누락)
-- step2-locations L315 치환 후 `Cowork 섹션 3, 섹션 4.7` -> § 없음 -> OK
+- `PROJECT.md 섹션 3 참조` -> 섹션 없음 -> OK
+- `PROJECT.md 섹션 3 참조` -> 섹션 위반 -> FAIL (치환 누락)
+- step2-locations L315 치환 후 `Cowork 섹션 3, 섹션 4.7` -> 섹션 없음 -> OK
 - 혼합 라인 문제 자동 해소
 
 ---
@@ -549,25 +549,25 @@ python3 scripts/check-doc-encoding.py && echo "doc-encoding OK"
 | CI lint 초기 실패 | Commit 7은 Commit 2~6 완료 후 |
 | middle dot 예외 | 4 파일 샘플 + 12 파일 Commit 2 diff 검수 |
 | 치환 순서 오류 | 섹션 3.5 section sign 먼저, middle dot 나중 |
-| 화이트리스트 모호성 | standards.md만 (본 plan은 § 사용 최소화로 화이트리스트 불필요) |
+| 화이트리스트 모호성 | standards.md만 (본 plan은 섹션 사용 최소화로 화이트리스트 불필요) |
 | Python 3 의존성 | CI workflow actions/setup-python@v5 |
 
 ---
 
 ## 11. 개정 이력 (v1 -> v5)
 
-### v5 핵심 변경 (§ 이중 표기 폐기)
+### v5 핵심 변경 (섹션 이중 표기 폐기)
 | 이슈 | v4 | v5 |
 |---|---|---|
-| CI lint 혼합 라인 false negative (v4 차단) | Python 매치 단위 80자 창 (여전히 false negative) | **§ 이중 표기 폐기, 모든 § -> 섹션 단순 치환**. 혼합 라인 문제 자동 해소 |
-| 5규칙 분기 복잡성 | 규칙 1~5 매치 단위 | **1규칙: 모든 § -> 섹션** |
-| 실측 연쇄 패턴 실증 | L307, L315 실증 필요 | 실증 불필요 (§ 자체가 사라짐) |
-| 화이트리스트 혼란 (본 plan, step2 등) | 여러 파일 화이트리스트 필요 | **standards.md만** (본 plan은 § 사용 최소화) |
-| Python 스크립트 복잡도 | 매치 단위, context 검색 | **단일 라인 § 검출** (20 line 정도) |
+| CI lint 혼합 라인 false negative (v4 차단) | Python 매치 단위 80자 창 (여전히 false negative) | **섹션 이중 표기 폐기, 모든 섹션 -> 섹션 단순 치환**. 혼합 라인 문제 자동 해소 |
+| 5규칙 분기 복잡성 | 규칙 1~5 매치 단위 | **1규칙: 모든 섹션 -> 섹션** |
+| 실측 연쇄 패턴 실증 | L307, L315 실증 필요 | 실증 불필요 (섹션 자체가 사라짐) |
+| 화이트리스트 혼란 (본 plan, step2 등) | 여러 파일 화이트리스트 필요 | **standards.md만** (본 plan은 섹션 사용 최소화) |
+| Python 스크립트 복잡도 | 매치 단위, context 검색 | **단일 라인 섹션 검출** (20 line 정도) |
 
 ### v3 eval 우선순위 1~3 유지 반영
 - 실측 숫자 정확
-- ⭐ 매핑
+- * 매핑
 - wi-utf8.md 섹션 1 완전 블록
 - standards.md 섹션 5 확장
 - 커밋 7개 분리, WI-chore/WI-docs 단독
@@ -580,7 +580,7 @@ python3 scripts/check-doc-encoding.py && echo "doc-encoding OK"
 
 ## 12. 검증 요청 (evaluator v5)
 
-1. § 이중 표기 폐기 단일 규칙 타당성
+1. 섹션 이중 표기 폐기 단일 규칙 타당성
 2. 치환 매핑 완결성 (v5 섹션 3)
 3. Python 스크립트 단순화 (섹션 8.1)
 4. 혼합 라인 문제 해소 실증 (섹션 8.4)
