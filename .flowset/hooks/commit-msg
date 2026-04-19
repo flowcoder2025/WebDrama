@@ -2,6 +2,12 @@
 # commit-msg hook: WI-[type] 커밋 메시지 형식 강제 검증
 # .git/hooks/commit-msg 에 설치됨
 
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export PYTHONUTF8=1
+export PYTHONIOENCODING=utf-8
+[[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]] && chcp.com 65001 > /dev/null 2>&1
+
 set -euo pipefail
 
 COMMIT_MSG_FILE="$1"

@@ -3,6 +3,12 @@
 # .git/hooks/pre-push 에 설치됨
 # push 대상 ref를 stdin에서 확인 -- HEAD가 main이어도 다른 브랜치 push는 허용
 
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export PYTHONUTF8=1
+export PYTHONIOENCODING=utf-8
+[[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]] && chcp.com 65001 > /dev/null 2>&1
+
 set -euo pipefail
 
 # push 대상 ref를 stdin에서 읽어서 main으로의 push인지 확인

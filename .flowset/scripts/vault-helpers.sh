@@ -5,6 +5,9 @@
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
+export PYTHONUTF8=1
+export PYTHONIOENCODING=utf-8
+[[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]] && chcp.com 65001 > /dev/null 2>&1
 
 # 설정값 (.flowsetrc에서 로드됨)
 : "${VAULT_ENABLED:=false}"

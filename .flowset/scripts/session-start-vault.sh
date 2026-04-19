@@ -6,6 +6,9 @@
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
+export PYTHONUTF8=1
+export PYTHONIOENCODING=utf-8
+[[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]] && chcp.com 65001 > /dev/null 2>&1
 
 # stdin에서 hook 입력 읽기
 INPUT=$(cat 2>/dev/null || true)
