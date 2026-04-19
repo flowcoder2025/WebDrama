@@ -290,6 +290,53 @@ await sleep(1500);
 
 ---
 
+## P-13. 텍스트 간판 로고 렌더 침입 (네거티브만으로는 불완전)
+
+### 증상
+- `no text, no watermark, no logo, no brand names` 네거티브가 있어도 실제 상호·브랜드·광고처럼 **읽히는** 한글 텍스트가 렌더됨
+- 실측: `loc_busstop_rain_evening_v1.png` (2026-04-19) — 건물 간판 "견만", "경항도로" 실제 상호처럼 가독
+- 실측: `loc_street_rain_cleared_v1.png` (2026-04-19) — 노면 한글 도로 마킹 가독 + shop sign 실제 상호 형상
+
+### 원인
+- NB2는 공간 필수 요소 (간판·광고판·도로 마킹·벤딩머신 라벨)를 빈 공간으로 두지 않음
+- Negative만 있으면 모델이 "뭔가로 채워야 함 = 가장 그럴듯한 현실 렌더"로 판정
+- 한국 공간 맥락(Korean urban)에 실제처럼 읽히는 한글 상호·도로명 생성이 기본 behaviour
+- 제약의 진짜 범위는 한국어 자체 금지가 아닌 readable 실제 상호·브랜드 금지
+
+### 복구: positive 대체 묘사 명시
+Cowork 원문 네거티브는 유지하고, 본문에서 해당 요소를 묘사하는 라인에 positive 대체 문구를 덧붙인다 (네거티브 앞쪽 이동 아님, 본문 강화).
+
+중요 원칙: 제약은 "한국어/한글 자체 금지"가 아니라 "실제 상호·브랜드·광고 문구가 읽히면 안 됨". Cowork 원문 `No readable text, no real brand logos, no real ad text`의 "real"과 "readable" 키워드가 제약의 범위. 한국 도시 배경이니 한글 간판은 자연스러운 요소로 존재해야 하고, 다만 추상화/흐림/가공된 한글 형태여야 한다.
+
+패턴 예 (한글 Korean-style 허용 + readable 실제 상호만 금지):
+- 간판: `Shop signs visible as abstract blurred Korean-style signage shapes, no readable store names, no real brand identities, decorative color fields with illegible stroke impressions only.`
+- 벤딩머신: `The vending machine's product display shows blurred color blocks and abstract Korean product shape impressions, no readable labels, no real brand graphics.`
+- 도로 마킹: `Road markings as faint weathered paint residue patterns, no real street names, no legible lane numbers, only abstract stroke remnants.`
+- 포스터: `Posters show indistinct graphic compositions with abstract Korean typography impressions, no readable text, no real advertisement content.`
+- 건물 간판: `Building signs on facades as blurred Korean-style graphic fields, no real company names, no legible store identities, abstract stroke shapes only.`
+
+### 적용 위치 규칙
+Cowork 원문에 있는 해당 요소 묘사 문장 **바로 뒤에** positive 대체 문구 삽입.
+
+예시 (loc_busstop_rain_evening 본문):
+- 원문: `a vending machine standing adjacent to the shelter with cool blue internal light spilling out through its product display (label text unreadable)`
+- 강화: `... product display. The vending machine's product display shows blurred color blocks only, no readable product labels, no brand graphics.`
+
+### 원칙 9와의 관계
+`prompts.md` 원칙 9 "AI가 자연 처리하는 효과는 프롬프트에서 빼기"의 예외. 텍스트는 자연 처리가 아닌 허위 생성 영역이라 positive 강제가 필요.
+
+### 확대 검토 기준
+"실제 상호·브랜드·도로명으로 읽히는가"가 판정 기준. 한글 형상이 있더라도 abstract/blurred 형태로 특정 단어로 읽히지 않으면 PASS. dot pattern이라도 특정 글자로 식별 가능하면 FAIL. 2K 16:9 풀프레임 시청 거리에서 노이즈로만 보이면 PASS.
+
+### 재생성 순서
+1. Cowork 원문 그대로 유지
+2. 본문 내 텍스트 가능 요소 (간판·벤딩머신·포스터·도로 마킹·건물 표지) 식별
+3. 각 요소 묘사 문장 뒤에 positive 대체 문구 삽입
+4. 네거티브 꼬리는 그대로 유지 (Cowork 원문 보존)
+5. Generate → 재검증
+
+---
+
 ## 빠른 복구 레시피
 
 | 증상 한 줄 | 바로 실행할 것 |

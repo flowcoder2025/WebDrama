@@ -61,6 +61,7 @@ Cowork 산출물 → (1) 캐릭터 ref → (2) 로케 ref → (3) 앵커 컷 →
 7. **사이드이펙트 사전 분석**: 깨질 수 있는 기능 미리 식별.
 8. **E2E = 브라우저 UI 조작**: `request.get/post`는 E2E가 아님.
 9. **실행 증거 없이 "완료" 주장 금지**: 실제 테스트·실행 결과 있어야 보고.
+10. **인코딩 규약**: `docs/standards.md` 섹션 5 참조. ASCII 우선, 이모지 금지.
 
 ## 자동 강제 (hook)
 - `commit-msg` hook: `WI-NNN-[type] 한글 작업명` 형식 강제 (예외: `WI-chore`, `WI-docs`)

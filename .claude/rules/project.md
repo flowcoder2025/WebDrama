@@ -47,3 +47,6 @@ projects/{작품}/
 - PR 생성 시 자동 실행: lint → build → test → commit-check
 - 현재 lint/build/test는 no-op (자동화 착수 시 복원)
 - commit-check는 `WI-NNN-[type]` 형식 강제
+
+## 인코딩 규약
+`docs/standards.md` 섹션 5 참조. 특수 유니코드 기호와 이모지 사용 금지, .sh 파일 UTF-8 블록 필수.

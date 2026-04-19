@@ -34,16 +34,20 @@ stat -c "%y %n" "/c/Team-jane/Cowork/나는괜찮아요_터미널세션_HANDOFF_
 stat -c "%y %n" "/c/Team-jane/Cowork/나는괜찮아요_시즌1_프롬프트북_v3_FINAL.md"
 stat -c "%y %n" "/c/Team-jane/Cowork/나는괜찮아요_공통프롬프트원칙.md"
 stat -c "%y %n" "/c/Team-jane/Cowork/나는괜찮아요_캐릭터레퍼런스_v3.md"
+stat -c "%y %n" "/c/Team-jane/Cowork/나는괜찮아요_로케이션레퍼런스_v3.md"
 stat -c "%y %n" "/c/Team-jane/Cowork/나는괜찮아요_편집배포규격_v3.md"
 ```
 
-**본 PROJECT.md가 기준으로 삼은 Cowork 파일 mtime (2026-04-19 freeze 시점)**:
-- `HANDOFF_v3.1.md`: 2026-04-19 03:35
-- `프롬프트북_v3_FINAL.md`: 2026-04-19 01:50
-- `공통프롬프트원칙.md`: 2026-04-19 02:01
-- `캐릭터레퍼런스_v3.md`: 2026-04-19 00:52
+**본 PROJECT.md가 기준으로 삼은 Cowork 파일 mtime (2026-04-19 21:28 기준, 파일명 동기화 A안 반영 완료)**:
+- `HANDOFF_v3.1.md`: 2026-04-19 21:17 (Step 2 재정의 + 로케이션레퍼런스 분책 반영)
+- `프롬프트북_v3_FINAL.md`: 2026-04-19 21:28 (파일명 동기화 반영)
+- `공통프롬프트원칙.md`: 2026-04-19 21:28 (파일명 동기화 반영)
+- `캐릭터레퍼런스_v3.md`: 2026-04-19 21:28 (파일명 동기화 — `_base_v1` / `_setA_v1` / `_setB_v1` 정본화)
+- `로케이션레퍼런스_v3.md`: 2026-04-19 21:28 (파일명 동기화 — `loc_<id>_v1.png` 정본화)
 - `편집배포규격_v3.md`: 2026-04-19 03:33
 - `프롬프트북_v3_EP1~EP4.md`: 2026-04-19 03:29~03:32
+
+> **파일명 규약 동기화 완료** (2026-04-19 21:28): Cowork 전체 문서 `_ref_v1` 표기를 standards 형식(`_v<n>`)으로 일괄 업데이트. 캐릭터는 `_base_v1` / `_setA_v1` / `_setB_v1`(슬롯 분리), 로케이션은 `loc_<id>_v1.png`. Cowork ↔ WebDrama 1:1 매핑 확보. 파일 내용·슬롯 규약·참조 관계 변화 없음, 접미사만 통일. `grep -r "_ref_v" /c/Team-jane/Cowork/` 결과 0건.
 
 ### 1.2 Cowork 업데이트 발견 시 갱신 절차
 
@@ -86,7 +90,7 @@ mtime이 기준보다 **새로우면**:
 | `char_coworker_jiyeon` | 지연 | 27세 여 | EP1 배경 / EP4 주역 | A(블러시 블라우스, EP1) / B(네이비 블레이저, EP4) | `assets/refs/char_coworker_jiyeon_setA_v1.png` + `_setB_v1.png` (신규) |
 | `char_mom` | 엄마 | 중년 여 | EP3 | **음성 전용** (이미지 ref 없음) | — |
 
-> **파일명 정본 참고**: Cowork `캐릭터레퍼런스_v3.md` L128은 `char_exlover_ref_v1.png` 등 `_ref_v1` 표기이나, **본 프로젝트는 HANDOFF v3.1 기준(`_base_v1` / `_setA_v1` / `_setB_v1`)을 정본**으로 한다. `docs/standards.md §1.1 char_<id>_<slot>_v<n>.png` 패턴과 일치.
+> **파일명 정본** (2026-04-19 21:28 동기화 완료): Cowork `캐릭터레퍼런스_v3.md`도 `_base_v1` / `_setA_v1` / `_setB_v1` 형식으로 업데이트 반영됨. Cowork ↔ WebDrama 1:1 매핑. `docs/standards.md §1.1 char_<id>_<slot>_v<n>.png` 패턴과 일치.
 
 ### 핵심 제약
 - **은서 골드 체인**: EP1·EP2만 착용. EP3·EP4 금지 (CU 시 오인 생성 방지)
@@ -124,6 +128,21 @@ mtime이 기준보다 **새로우면**:
 | `loc_sidewalk_after_rain` | EP4 | 앰버 가로등 + 웅덩이 반영 |
 | `loc_busstop_evening` | EP4 | 따뜻한 앰버 (EP1 반대 빛) |
 | `loc_sidewalk_morning` | EP1, EP4 | 쿨 아침 빛 (EP4 C01 = EP1 C00 공간 재사용) |
+
+> **프롬프트 원문 출처**: `C:\Team-jane\Cowork\나는괜찮아요_로케이션레퍼런스_v3.md §2.1~§2.16` (무인 establishing 16종 독립 프롬프트, 2026-04-19 21:10 분책).
+>
+> **파일명 정본** (2026-04-19 21:28 동기화 완료): Cowork `로케이션레퍼런스_v3.md §3`도 `loc_<id>_v1.png` 형식으로 업데이트 반영됨 (예: `loc_office_daytime_v1.png`). `docs/standards.md §1.1 loc_<code>_v<n>.png` 패턴과 일치, Cowork ↔ WebDrama 1:1 매핑. Freepik 라이브러리 등록명은 `loc_<id>` (버전·확장자 없이) 그대로 사용.
+>
+> **검수 쌍** (HANDOFF §2 Step 2 / 로케이션레퍼런스 §4.7): 공간 공유 쌍 생성 후 픽셀 일치 대조 필수. 불일치 시 **두 번째만 재생성**하여 첫 번째를 앵커 기준으로 강제.
+> - `loc_home_dining_cool` ↔ `loc_home_dining_amber` (EP3, 시간·조명만 다름)
+> - `loc_busstop_rain_evening` ↔ `loc_busstop_evening` (EP1 ↔ EP4 수미상관 척추)
+> - `loc_sidewalk_morning` ↔ `loc_sidewalk_after_rain` (EP1·EP4 공용 인도)
+>
+> **NanoBanana2 슬롯 규약** (로케이션레퍼런스 §4.0, HANDOFF §2 Step 2):
+> - `@img1` = 로케이션 마스터 (`loc_*`) — **모든 클립 Step 0 헤더 필수 선언**
+> - `@img2` = 은서 (`char_eunseo`)
+> - `@img3` = EP1·EP2·EP3 시퀀스 앵커 / **EP4 팬트리(두 인물 공존) 한정 = 지연(`char_coworker_jiyeon`)**
+> - `@img4` = EP4 전용 시퀀스 앵커 (`@img3`가 지연에 점유된 경우)
 
 ---
 
