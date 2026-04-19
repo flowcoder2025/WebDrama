@@ -1,0 +1,30 @@
+name: Document Encoding Check
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - 'scripts/check-doc-encoding.*'
+      - '.github/workflows/doc-encoding.yml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run encoding check
+        shell: bash
+        env:
+          PYTHONUTF8: '1'
+          PYTHONIOENCODING: utf-8
+        run: |
+          chmod +x scripts/check-doc-encoding.sh
+          ./scripts/check-doc-encoding.sh
