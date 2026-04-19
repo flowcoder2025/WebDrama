@@ -1,6 +1,6 @@
 # CDP 작업 치트시트
 
-> **역할**: 매일 쓰는 10개 SOP — `node -e "..."` 바로 복붙 실행.
+> **역할**: 매일 쓰는 10개 SOP -- `node -e "..."` 바로 복붙 실행.
 > **언제 읽나**: 작업 중 스니펫 필요 시 (Read 1회로 충분).
 > **공통 전제**: 모든 스니펫 앞에 CDP 연결 헤더 붙이고, `const sleep = ms => new Promise(r => setTimeout(r, ms));` 있다고 가정.
 
@@ -8,10 +8,10 @@
 // 공통 헤더 (매 스니펫 실행 시 필요)
 const p = require('puppeteer');
 (async () => {
-  const b = await p.connect({ browserURL: 'http://localhost:9222', defaultViewport: null, protocolTimeout: 60000 });
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
-  // ─── 여기에 스니펫 ─── //
-  b.disconnect();
+ const b = await p.connect({ browserURL: 'http://localhost:9222', defaultViewport: null, protocolTimeout: 60000 });
+ const sleep = ms => new Promise(r => setTimeout(r, ms));
+ // --- 여기에 스니펫 --- //
+ b.disconnect();
 })();
 ```
 
@@ -23,18 +23,18 @@ const p = require('puppeteer');
 const ipg = (await b.pages()).find(x => x.url().includes('ai-image-generator'));
 await ipg.bringToFront();
 const s = await ipg.evaluate(() => {
-  const get = d => { const el = document.querySelector('[data-cy="'+d+'"]'); return el ? { text: el.textContent.trim().slice(0,40), disabled: el.disabled === true } : null; };
-  const refs = [...document.querySelectorAll('[data-cy="reference-image-card"]')].map(c => ({
-    prodId: (c.querySelector('img')?.src||'').match(/production\/(\d+)\//)?.[1],
-    isBlob: /^blob:/.test(c.querySelector('img')?.src||'')
-  }));
-  return {
-    resolution: get('image-resolution-input'),
-    ratio: get('image-aspect-ratio-input'),
-    generate: get('generate-button'),
-    refs,
-    promptSnippet: document.querySelector('[data-cy="image-prompt-input"]')?.textContent.trim().slice(0,100)
-  };
+ const get = d => { const el = document.querySelector('[data-cy="'+d+'"]'); return el ? { text: el.textContent.trim().slice(0,40), disabled: el.disabled === true } : null; };
+ const refs = [...document.querySelectorAll('[data-cy="reference-image-card"]')].map(c => ({
+ prodId: (c.querySelector('img')?.src||'').match(/production\/(\d+)\//)?.[1],
+ isBlob: /^blob:/.test(c.querySelector('img')?.src||'')
+ }));
+ return {
+ resolution: get('image-resolution-input'),
+ ratio: get('image-aspect-ratio-input'),
+ generate: get('generate-button'),
+ refs,
+ promptSnippet: document.querySelector('[data-cy="image-prompt-input"]')?.textContent.trim().slice(0,100)
+ };
 });
 console.log(JSON.stringify(s, null, 2));
 ```
@@ -47,18 +47,18 @@ console.log(JSON.stringify(s, null, 2));
 const vpg = (await b.pages()).find(x => x.url().includes('ai-video-generator'));
 await vpg.bringToFront();
 const s = await vpg.evaluate(() => {
-  const get = d => { const el = document.querySelector('[data-cy="'+d+'"]'); return el ? { text: el.textContent.trim().slice(0,40), disabled: el.disabled === true } : null; };
-  const sfi = document.querySelector('[data-cy="video-start-frame-input"] img');
-  return {
-    model: document.querySelector('[data-cy="video-model-selector-trigger"]')?.textContent.trim().slice(0,30),
-    resolution: document.querySelector('[data-cy="video-resolution-option"]')?.textContent.trim(),
-    duration: document.querySelector('[data-cy="video-duration-option"]')?.textContent.trim(),
-    ratio: document.querySelector('[data-cy="video-aspect-ratio-option"]')?.textContent.trim(),
-    generate: get('generate-button'),
-    startImageProd: (sfi?.src||'').match(/production\/(\d+)\//)?.[1],
-    startIsTemp: /tmp\/temp-files/.test(sfi?.src||''),
-    promptSnippet: document.querySelector('[data-cy="video-prompt-input"]')?.textContent.trim().slice(0,100)
-  };
+ const get = d => { const el = document.querySelector('[data-cy="'+d+'"]'); return el ? { text: el.textContent.trim().slice(0,40), disabled: el.disabled === true } : null; };
+ const sfi = document.querySelector('[data-cy="video-start-frame-input"] img');
+ return {
+ model: document.querySelector('[data-cy="video-model-selector-trigger"]')?.textContent.trim().slice(0,30),
+ resolution: document.querySelector('[data-cy="video-resolution-option"]')?.textContent.trim(),
+ duration: document.querySelector('[data-cy="video-duration-option"]')?.textContent.trim(),
+ ratio: document.querySelector('[data-cy="video-aspect-ratio-option"]')?.textContent.trim(),
+ generate: get('generate-button'),
+ startImageProd: (sfi?.src||'').match(/production\/(\d+)\//)?.[1],
+ startIsTemp: /tmp\/temp-files/.test(sfi?.src||''),
+ promptSnippet: document.querySelector('[data-cy="video-prompt-input"]')?.textContent.trim().slice(0,100)
+ };
 });
 console.log(JSON.stringify(s, null, 2));
 ```
@@ -70,7 +70,7 @@ console.log(JSON.stringify(s, null, 2));
 ```js
 const ipg = (await b.pages()).find(x => x.url().includes('ai-image-generator'));
 await ipg.bringToFront();
-const PROD_ID = '3950716111';  // 원하는 prodId
+const PROD_ID = '3950716111'; // 원하는 prodId
 
 // Add 모달 오픈
 const addPos = await ipg.evaluate(() => { const b = document.querySelector('[data-cy="reference-add-button"]'); const r = b.getBoundingClientRect(); return { x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2) }; });
@@ -79,19 +79,19 @@ await sleep(2000);
 
 // 직접 prodId로 찾기 (실패 시 첫 이미지 fallback)
 let pos = await ipg.evaluate((pid) => {
-  const t = document.querySelector('[data-cy="feed-image-item-'+pid+'"]');
-  if (!t) return null;
-  t.scrollIntoView({ block: 'center' });
-  const r = t.getBoundingClientRect();
-  return { x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2) };
+ const t = document.querySelector('[data-cy="feed-image-item-'+pid+'"]');
+ if (!t) return null;
+ t.scrollIntoView({ block: 'center' });
+ const r = t.getBoundingClientRect();
+ return { x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2) };
 }, PROD_ID);
 if (!pos) {
-  pos = await ipg.evaluate(() => {
-    const first = document.querySelector('[data-cy^="feed-image-item-"]');
-    const r = first.getBoundingClientRect();
-    return { x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2) };
-  });
-  console.log('NOTE: prodId not found, using first item');
+ pos = await ipg.evaluate(() => {
+ const first = document.querySelector('[data-cy^="feed-image-item-"]');
+ const r = first.getBoundingClientRect();
+ return { x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2) };
+ });
+ console.log('NOTE: prodId not found, using first item');
 }
 await sleep(500);
 await ipg.mouse.click(pos.x, pos.y);
@@ -145,22 +145,22 @@ await sleep(4000);
 const ipg = (await b.pages()).find(x => x.url().includes('ai-image-generator'));
 await ipg.bringToFront();
 while (true) {
-  const info = await ipg.evaluate(() => {
-    const c = document.querySelector('[data-cy="reference-image-card"]');
-    if (!c) return null;
-    const cr = c.getBoundingClientRect();
-    const btn = c.querySelector('button');
-    const br = btn.getBoundingClientRect();
-    return {
-      cx: Math.round(cr.x+cr.width/2), cy: Math.round(cr.y+cr.height/2),
-      xbx: Math.round(br.x+br.width/2), xby: Math.round(br.y+br.height/2)
-    };
-  });
-  if (!info) break;
-  await ipg.mouse.move(info.cx, info.cy);
-  await sleep(500);
-  await ipg.mouse.click(info.xbx, info.xby);
-  await sleep(800);
+ const info = await ipg.evaluate(() => {
+ const c = document.querySelector('[data-cy="reference-image-card"]');
+ if (!c) return null;
+ const cr = c.getBoundingClientRect();
+ const btn = c.querySelector('button');
+ const br = btn.getBoundingClientRect();
+ return {
+ cx: Math.round(cr.x+cr.width/2), cy: Math.round(cr.y+cr.height/2),
+ xbx: Math.round(br.x+br.width/2), xby: Math.round(br.y+br.height/2)
+ };
+ });
+ if (!info) break;
+ await ipg.mouse.move(info.cx, info.cy);
+ await sleep(500);
+ await ipg.mouse.click(info.xbx, info.xby);
+ await sleep(800);
 }
 console.log('refs cleared');
 ```
@@ -179,13 +179,13 @@ const OUT = 'C:/path/to/output.png';
 // API 가로채기 리스너
 let myFamily = null, myCreationId = null;
 const onRes = async (res) => {
-  const u = res.url();
-  if (/start-tti-v2/.test(u) && res.status() === 200) {
-    try { const body = JSON.parse(await res.text()); if (body.family) myFamily = body.family; } catch(e) {}
-  }
-  if (/render\/v4/.test(u) && res.status() === 200) {
-    try { const body = JSON.parse(await res.text()); if (body.creation?.family === myFamily && !myCreationId) myCreationId = body.creation.id; } catch(e) {}
-  }
+ const u = res.url();
+ if (/start-tti-v2/.test(u) && res.status() === 200) {
+ try { const body = JSON.parse(await res.text()); if (body.family) myFamily = body.family; } catch(e) {}
+ }
+ if (/render\/v4/.test(u) && res.status() === 200) {
+ try { const body = JSON.parse(await res.text()); if (body.creation?.family === myFamily && !myCreationId) myCreationId = body.creation.id; } catch(e) {}
+ }
 };
 ipg.on('response', onRes);
 
@@ -203,14 +203,14 @@ console.log('creationId:', myCreationId);
 // 갤러리 render URL 대기
 let r = null;
 for (let w = 5; w <= 90; w += 5) {
-  await sleep(5000);
-  r = await ipg.evaluate((cid) => {
-    const el = document.querySelector('[data-item="'+cid+'"]');
-    const img = el?.querySelector('img');
-    if (!img?.src || !/production/.test(img.src)) return null;
-    return { src: img.src, prod: img.src.match(/production\/(\d+)\//)?.[1] };
-  }, myCreationId);
-  if (r) break;
+ await sleep(5000);
+ r = await ipg.evaluate((cid) => {
+ const el = document.querySelector('[data-item="'+cid+'"]');
+ const img = el?.querySelector('img');
+ if (!img?.src || !/production/.test(img.src)) return null;
+ return { src: img.src, prod: img.src.match(/production\/(\d+)\//)?.[1] };
+ }, myCreationId);
+ if (r) break;
 }
 ipg.off('response', onRes);
 if (!r) { console.log('NO_RENDER'); return; }
@@ -219,12 +219,12 @@ console.log('done:', r.prod);
 // 다운로드
 const originUrl = r.src.replace(/[?&]preview=1/, '');
 await new Promise((res, rej) => {
-  https.get(originUrl, resp => {
-    if (resp.statusCode !== 200) return rej(new Error('status='+resp.statusCode));
-    const chunks = [];
-    resp.on('data', c => chunks.push(c));
-    resp.on('end', () => { fs.writeFileSync(OUT, Buffer.concat(chunks)); res(); });
-  });
+ https.get(originUrl, resp => {
+ if (resp.statusCode !== 200) return rej(new Error('status='+resp.statusCode));
+ const chunks = [];
+ resp.on('data', c => chunks.push(c));
+ resp.on('end', () => { fs.writeFileSync(OUT, Buffer.concat(chunks)); res(); });
+ });
 });
 console.log('saved:', OUT);
 ```
@@ -246,12 +246,12 @@ const OUT = 'C:/path/to/output.mp4';
 // API 가로채기
 let myIdentifier = null, expectedSec = 90;
 const onRes = async (res) => {
-  if (!/video\/generate/.test(res.url()) || res.status() !== 200) return;
-  try {
-    const body = JSON.parse(await res.text());
-    const c = body?.data?.creations?.[0];
-    if (c) { myIdentifier = c.identifier; if (c.metadata?.expectedGenerationTime) expectedSec = c.metadata.expectedGenerationTime + 30; }
-  } catch(e) {}
+ if (!/video\/generate/.test(res.url()) || res.status() !== 200) return;
+ try {
+ const body = JSON.parse(await res.text());
+ const c = body?.data?.creations?.[0];
+ if (c) { myIdentifier = c.identifier; if (c.metadata?.expectedGenerationTime) expectedSec = c.metadata.expectedGenerationTime + 30; }
+ } catch(e) {}
 };
 vpg.on('response', onRes);
 
@@ -266,26 +266,26 @@ console.log('identifier:', myIdentifier);
 
 let r = null;
 for (let w = 10; w <= expectedSec*1.5; w += 10) {
-  await sleep(10000);
-  r = await vpg.evaluate((id) => {
-    const vb = document.querySelector('[data-cy="video-box-'+id+'"]');
-    const video = vb?.closest('[data-cy="main-feed-item"]')?.querySelector('video');
-    if (!video?.src || !/production/.test(video.src)) return null;
-    return { src: video.src, prod: video.src.match(/production\/(\d+)\//)?.[1] };
-  }, myIdentifier);
-  if (r) break;
+ await sleep(10000);
+ r = await vpg.evaluate((id) => {
+ const vb = document.querySelector('[data-cy="video-box-'+id+'"]');
+ const video = vb?.closest('[data-cy="main-feed-item"]')?.querySelector('video');
+ if (!video?.src || !/production/.test(video.src)) return null;
+ return { src: video.src, prod: video.src.match(/production\/(\d+)\//)?.[1] };
+ }, myIdentifier);
+ if (r) break;
 }
 vpg.off('response', onRes);
 if (!r) { console.log('NO_VIDEO'); return; }
 console.log('done:', r.prod);
 
 await new Promise((res, rej) => {
-  https.get(r.src, resp => {
-    if (resp.statusCode !== 200) return rej(new Error('status='+resp.statusCode));
-    const chunks = [];
-    resp.on('data', c => chunks.push(c));
-    resp.on('end', () => { fs.writeFileSync(OUT, Buffer.concat(chunks)); res(); });
-  });
+ https.get(r.src, resp => {
+ if (resp.statusCode !== 200) return rej(new Error('status='+resp.statusCode));
+ const chunks = [];
+ resp.on('data', c => chunks.push(c));
+ resp.on('end', () => { fs.writeFileSync(OUT, Buffer.concat(chunks)); res(); });
+ });
 });
 console.log('saved:', OUT);
 ```
@@ -294,21 +294,21 @@ console.log('saved:', OUT);
 
 ## 8. 영상 탭 Normalize (Kling 2.5 / 720 / 10" 강제)
 
-**⭐ 전체 함수 정의 → [`troubleshoot.md` P-2](troubleshoot.md) (SSOT)**
+*** 전체 함수 정의 -> [`troubleshoot.md` P-2](troubleshoot.md) (SSOT)**
 
-이미지→비디오 전환 후 **반드시** 실행. 어떤 리셋 조합(1080 / Auto / Kling 3.0)이든 복귀시킴.
+이미지->비디오 전환 후 **반드시** 실행. 어떤 리셋 조합(1080 / Auto / Kling 3.0)이든 복귀시킴.
 
 ```js
 // troubleshoot.md P-2의 normalizeVideoTab() 함수를 그대로 복붙 후:
 const vpg = (await b.pages()).find(x => x.url().includes('ai-video-generator'));
 await vpg.bringToFront();
 const { steps } = await normalizeVideoTab(vpg);
-console.log('steps:', steps);  // 예: ["res→720"] 또는 [] (이미 정상)
+console.log('steps:', steps); // 예: ["res->720"] 또는 [] (이미 정상)
 ```
 
 ---
 
-## 9. 이미지 다운로드 (preview=1 제거 → 2K 원본)
+## 9. 이미지 다운로드 (preview=1 제거 -> 2K 원본)
 
 ```js
 const fs = require('fs');
@@ -316,20 +316,20 @@ const https = require('https');
 const ipg = (await b.pages()).find(x => x.url().includes('ai-image-generator'));
 const OUT = 'C:/path/to/output.png';
 // 특정 creation.id 이미지의 src 획득
-const CID = '2806455855';  // 또는 현재 최상단: document.querySelector('[data-cy="image-creation-feed-item"] img')
+const CID = '2806455855'; // 또는 현재 최상단: document.querySelector('[data-cy="image-creation-feed-item"] img')
 const src = await ipg.evaluate((cid) => {
-  const el = document.querySelector('[data-item="'+cid+'"]');
-  return el?.querySelector('img')?.src;
+ const el = document.querySelector('[data-item="'+cid+'"]');
+ return el?.querySelector('img')?.src;
 }, CID);
 if (!src) { console.log('NO_SRC'); return; }
 const originUrl = src.replace(/[?&]preview=1/, '');
 await new Promise((res, rej) => {
-  https.get(originUrl, resp => {
-    if (resp.statusCode !== 200) return rej(new Error('status='+resp.statusCode));
-    const chunks = [];
-    resp.on('data', c => chunks.push(c));
-    resp.on('end', () => { fs.writeFileSync(OUT, Buffer.concat(chunks)); res(); });
-  });
+ https.get(originUrl, resp => {
+ if (resp.statusCode !== 200) return rej(new Error('status='+resp.statusCode));
+ const chunks = [];
+ resp.on('data', c => chunks.push(c));
+ resp.on('end', () => { fs.writeFileSync(OUT, Buffer.concat(chunks)); res(); });
+ });
 });
 console.log('saved:', OUT);
 ```
@@ -342,18 +342,18 @@ console.log('saved:', OUT);
 const pg = /* 대상 탭 */;
 
 async function selectPopoverOption(triggerDataCy, regex) {
-  await (await pg.$(`[data-cy="${triggerDataCy}"]`)).click();
-  await sleep(500);
-  const pos = await pg.evaluate((rx) => {
-    const opts = [...document.querySelectorAll('[data-cy="popover-option"]')].filter(o => o.getBoundingClientRect().height > 0);
-    const m = opts.find(o => new RegExp(rx).test(o.textContent.trim()));
-    if (!m) return null;
-    const r = m.getBoundingClientRect();
-    return { x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2) };
-  }, regex);
-  if (pos) await pg.mouse.click(pos.x, pos.y);
-  await sleep(500);
-  return !!pos;
+ await (await pg.$(`[data-cy="${triggerDataCy}"]`)).click();
+ await sleep(500);
+ const pos = await pg.evaluate((rx) => {
+ const opts = [...document.querySelectorAll('[data-cy="popover-option"]')].filter(o => o.getBoundingClientRect().height > 0);
+ const m = opts.find(o => new RegExp(rx).test(o.textContent.trim()));
+ if (!m) return null;
+ const r = m.getBoundingClientRect();
+ return { x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2) };
+ }, regex);
+ if (pos) await pg.mouse.click(pos.x, pos.y);
+ await sleep(500);
+ return !!pos;
 }
 
 // 예시 사용

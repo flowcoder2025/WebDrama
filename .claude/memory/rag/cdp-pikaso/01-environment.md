@@ -2,7 +2,7 @@
 
 > **역할**: NanoBanana2 + Kling 2.5 파이프라인 고정 설정값 + Unlimited 조건 정의.
 > **언제 읽나**: 세션 시작 / 설정 리셋 의심 시 검증용.
-> **관련 파일**: [`ref-dropdowns.md`](ref-dropdowns.md) (값 선택 시 사용할 옵션), [`troubleshoot.md`](troubleshoot.md) (이미지→비디오 전환 후 리셋 대응)
+> **관련 파일**: [`ref-dropdowns.md`](ref-dropdowns.md) (값 선택 시 사용할 옵션), [`troubleshoot.md`](troubleshoot.md) (이미지->비디오 전환 후 리셋 대응)
 > **마지막 실측**: 2026-04-17
 
 ---
@@ -25,12 +25,12 @@
 
 **720 + 10" + 16:9** 조합만 `"GenerateUnlimited"` + enabled.
 
-그 외 모든 조합은 **계정 차원에서 Generate `disabled`** 처리됨 → **우리 계정에선 유료 조합 차단**이라 실수로 크레딧 소모 거의 불가.
+그 외 모든 조합은 **계정 차원에서 Generate `disabled`** 처리됨 -> **우리 계정에선 유료 조합 차단**이라 실수로 크레딧 소모 거의 불가.
 
-**단 하나의 예외 — 이미지→비디오 전환 직후**:
+**단 하나의 예외 -- 이미지->비디오 전환 직후**:
 - 해상도가 1080p로 리셋되고 **Generate enabled 상태 유지**
 - 사용자 보고: 간헐적으로 Auto 모델 / Kling 3.0 1080p 고정 케이스도 발생 (랜덤)
-- → 반드시 `normalizeVideoTab()` 실행 ([`troubleshoot.md`](troubleshoot.md))
+- -> 반드시 `normalizeVideoTab()` 실행 ([`troubleshoot.md`](troubleshoot.md))
 
 ## Generate 버튼 텍스트 판독
 
@@ -40,7 +40,7 @@
 | `"Generate"` + 숫자 (예: `"Generate650"`) | 유료 조합. 숫자 = 소모 크레딧. **클릭 금지**. |
 | `""` (빈 텍스트) | disabled=true. 프롬프트 없거나 조합 불가. |
 
-## 모델 선택 ↔ 크레딧 비용 (영상)
+## 모델 선택 <-> 크레딧 비용 (영상)
 
 | 모델 | data-cy | 크레딧 |
 |------|---------|--------|
@@ -50,7 +50,7 @@
 | Seedance 2.0 | `ai-model-item-slim-bytedance-seedance-pro-2.0` | 550-6500 |
 | Seedance 2.0 Fast | `ai-model-item-slim-bytedance-seedance-fast-2.0` | 450-5000 |
 | Kling 3.0 Omni | `ai-model-item-slim-kling-omni3` | 210-1725 |
-| **Kling 2.5** | **`ai-model-item-slim-kling-25`** | **Unlimited (무료)** ← 고정 |
+| **Kling 2.5** | **`ai-model-item-slim-kling-25`** | **Unlimited (무료)** <- 고정 |
 | Kling 3.0 | `ai-model-item-slim-kling-30` | 210-2400 |
 
 ## 파일 크기 / 생성 시간

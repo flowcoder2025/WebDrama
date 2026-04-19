@@ -12,21 +12,21 @@
 ```js
 const puppeteer = require('puppeteer');
 const browser = await puppeteer.connect({
-  browserURL: 'http://localhost:9222',
-  defaultViewport: null,      // 필수. 미지정 시 puppeteer가 800x600 강제 (사용자 창 좁아짐)
-  protocolTimeout: 30000      // 장시간 영상 생성 시 60000+로 늘리기
+ browserURL: 'http://localhost:9222',
+ defaultViewport: null, // 필수. 미지정 시 puppeteer가 800x600 강제 (사용자 창 좁아짐)
+ protocolTimeout: 30000 // 장시간 영상 생성 시 60000+로 늘리기
 });
 ```
 
 ### 금기 (사용자 브라우저 파괴)
-- `page.close()` — 사용자 실제 탭 삭제
-- `browser.disconnect()` 후 `browser.close()` — 브라우저 종료
-- `page.setViewport()` — 사용자 창 크기 변경
-- `Page.setDownloadBehavior` — 다운로드 경로 변경 (일부 세션에서 브라우저 다운로드 깨짐)
+- `page.close()` -- 사용자 실제 탭 삭제
+- `browser.disconnect()` 후 `browser.close()` -- 브라우저 종료
+- `page.setViewport()` -- 사용자 창 크기 변경
+- `Page.setDownloadBehavior` -- 다운로드 경로 변경 (일부 세션에서 브라우저 다운로드 깨짐)
 
 ### 권장 해제
 ```js
-browser.disconnect();  // 연결만 해제, 브라우저 유지
+browser.disconnect(); // 연결만 해제, 브라우저 유지
 ```
 
 ## 탭 식별
@@ -51,7 +51,7 @@ const epg = pages.find(x => x.url().includes('image-editor'));
 
 ```js
 await pg.bringToFront();
-await sleep(400);  // 탭 전환 안정화
+await sleep(400); // 탭 전환 안정화
 ```
 
 ## 실제 환경 파라미터 (2026-04-17 실측)
@@ -75,9 +75,9 @@ curl -s --max-time 3 http://localhost:9222/json | head -20
 에디터 / Create video 버튼 클릭 시 **같은 탭에서 URL 이동**. 복귀:
 ```js
 try {
-  await pg.goBack({ waitUntil: 'domcontentloaded', timeout: 8000 });
+ await pg.goBack({ waitUntil: 'domcontentloaded', timeout: 8000 });
 } catch (e) {
-  await pg.goto('https://www.freepik.com/pikaso/ai-image-generator', { waitUntil: 'domcontentloaded' });
+ await pg.goto('https://www.freepik.com/pikaso/ai-image-generator', { waitUntil: 'domcontentloaded' });
 }
 await sleep(1500);
 ```
