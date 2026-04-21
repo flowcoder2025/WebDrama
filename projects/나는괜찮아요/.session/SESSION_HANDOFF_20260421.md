@@ -15,7 +15,7 @@
 ## 세션 시작 시 읽어야 할 순서 (필수)
 
 1. **이 파일** -- 전체 맥락
-2. `projects/나는괜찮아요/PROJECT.md` -- 작품 메타 + Cowork SSOT 링크 + 캐릭터·로케이션·앵커 매트릭스 + 체인 주입 38 클립
+2. `projects/나는괜찮아요/PROJECT.md` -- 작품 메타 + Cowork SSOT 링크 + 캐릭터/로케이션/앵커 매트릭스 + 체인 주입 38 클립
 3. `projects/나는괜찮아요/.session/plan-step2-locations.md` -- Step 2 실행 계획 (eval 10점 PASS 본)
 4. `C:\Team-jane\Cowork\나는괜찮아요_시즌1_프롬프트북_v3_EP1.md` -- 18 클립 Start Image + Kling 프롬프트 원문 (절대 SSOT)
 5. `C:\Team-jane\Cowork\나는괜찮아요_로케이션레퍼런스_v3.md` 섹션 5 -- 한글 스크립트 강제 신설 규약 (2026-04-20 업데이트)
