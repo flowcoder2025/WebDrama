@@ -2,6 +2,12 @@
 # commit-msg hook: WI-[type] 커밋 메시지 형식 강제 검증
 # .git/hooks/commit-msg 에 설치됨
 
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export PYTHONUTF8=1
+export PYTHONIOENCODING=utf-8
+[[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]] && chcp.com 65001 > /dev/null 2>&1
+
 set -euo pipefail
 
 COMMIT_MSG_FILE="$1"
@@ -12,50 +18,41 @@ PATTERN="^WI-[0-9]{3,4}(-[0-9]+)?-(feat|fix|docs|style|refactor|test|chore|perf|
 PATTERN_SYSTEM="^WI-(chore|docs) .+"
 PATTERN_MERGE="^Merge "
 
-# FlowSet 필수 파일 존재 검증 (첫 커밋 시 누락 방지)
+# FlowSet 필수 파일 존재 검증 (Vault 동기화 스크립트만 유지)
 REQUIRED_SCRIPTS=(
-  ".flowset/scripts/vault-helpers.sh"
-  ".flowset/scripts/check-ownership.sh"
-  ".flowset/scripts/check-cross-team-impact.sh"
-  ".flowset/scripts/session-start-vault.sh"
-  ".flowset/scripts/stop-vault-sync.sh"
-  ".flowset/scripts/stop-rag-check.sh"
-  ".flowset/scripts/notify-contract-change.sh"
-  ".flowset/scripts/resolve-team.sh"
-  ".flowset/scripts/enqueue-pr.sh"
-  ".flowset/scripts/launch-loop.sh"
-  ".flowset/scripts/verify-requirements.sh"
-  ".flowset/scripts/rollback.sh"
+ ".flowset/scripts/vault-helpers.sh"
+ ".flowset/scripts/session-start-vault.sh"
+ ".flowset/scripts/stop-vault-sync.sh"
 )
 missing=()
 for f in "${REQUIRED_SCRIPTS[@]}"; do
-  [[ ! -f "$f" ]] && missing+=("$f")
+ [[ ! -f "$f" ]] && missing+=("$f")
 done
 if [[ ${#missing[@]} -gt 0 ]]; then
-  echo ""
-  echo "  FlowSet 필수 스크립트 누락 (${#missing[@]}개)"
-  echo ""
-  for m in "${missing[@]}"; do
-    echo "  MISSING: $m"
-  done
-  echo ""
-  echo "  복사 명령:"
-  echo "  cp ~/.claude/templates/flowset/.flowset/scripts/* .flowset/scripts/"
-  echo ""
-  exit 1
+ echo ""
+ echo " FlowSet 필수 스크립트 누락 (${#missing[@]}개)"
+ echo ""
+ for m in "${missing[@]}"; do
+ echo " MISSING: $m"
+ done
+ echo ""
+ echo " 복사 명령:"
+ echo " cp ~/.claude/templates/flowset/.flowset/scripts/* .flowset/scripts/"
+ echo ""
+ exit 1
 fi
 
 if [[ ! "$COMMIT_MSG" =~ $PATTERN && ! "$COMMIT_MSG" =~ $PATTERN_SYSTEM && ! "$COMMIT_MSG" =~ $PATTERN_MERGE ]]; then
-  echo ""
-  echo "  커밋 메시지 형식 오류"
-  echo ""
-  echo "  현재: $COMMIT_MSG"
-  echo "  형식: WI-NNN-[type] 한글 작업명  (NNN = 3자리 순번)"
-  echo "  타입: feat, fix, docs, style, refactor, test, chore, perf, ci, revert"
-  echo ""
-  echo "  예시: WI-001-feat 사용자 인증 추가"
-  echo "        WI-015-fix 로그인 토큰 만료 처리"
-  echo "  시스템: WI-chore/WI-docs (번호 없이 허용 — 환경 셋업, PRD 문서 등)"
-  echo ""
-  exit 1
+ echo ""
+ echo " 커밋 메시지 형식 오류"
+ echo ""
+ echo " 현재: $COMMIT_MSG"
+ echo " 형식: WI-NNN-[type] 한글 작업명 (NNN = 3자리 순번)"
+ echo " 타입: feat, fix, docs, style, refactor, test, chore, perf, ci, revert"
+ echo ""
+ echo " 예시: WI-001-feat 사용자 인증 추가"
+ echo " WI-015-fix 로그인 토큰 만료 처리"
+ echo " 시스템: WI-chore/WI-docs (번호 없이 허용 -- 환경 셋업, PRD 문서 등)"
+ echo ""
+ exit 1
 fi

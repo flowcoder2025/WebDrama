@@ -46,8 +46,16 @@ desktop.ini
 .flowset/teams/
 .flowset/eval-results/
 
-# Generated content (local only)
-projects/
+# Generated content (local only) — assets/ binary는 추적 안 함, 문서만 예외
+projects/**
+!projects/
+!projects/*/
+!projects/*/PROJECT.md
+!projects/*/.session/
+!projects/*/.session/*.md
+!projects/*/assets/
+!projects/*/assets/_logs/
+!projects/*/assets/_logs/*.md
 
 # Parallel worktree (flowset.sh 자동 생성/정리)
 .worktrees/
